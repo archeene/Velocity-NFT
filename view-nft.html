@@ -1331,11 +1331,11 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
     nameEl.className = 'gallery-slot-name';
     nameEl.textContent = hasNft ? nftName : 'Locked';
 
-    var reason = hasNft ? getAwardReason(nft) : 'LOCKED';
+    var reason = hasNft ? getAwardReason(nft) : '';
     var status = document.createElement('div');
     status.className = 'gallery-slot-status';
     status.textContent = reason;
-    if (hasNft && !reason) status.style.display = 'none';
+    if (!reason) status.style.display = 'none';
 
     slot.appendChild(icon);
     slot.appendChild(nameEl);
