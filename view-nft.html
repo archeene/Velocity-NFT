@@ -680,7 +680,7 @@
       transition: all 0.2s ease;
     }
     .gallery-slot.earned {
-      border-color: var(--slot-color, #cd7f32);
+      border-color: rgba(255,255,255,0.1);
       background: rgba(255,255,255,0.03);
     }
     .gallery-slot.current {
@@ -1292,6 +1292,14 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
   var TOTAL_SLOTS = 16; // 4 rows x 4 columns
   var nftList = (walletNfts && walletNfts.length > 0) ? walletNfts.slice() : [];
 
+  // Random bright colors for slot text
+  var SLOT_COLORS = [
+    '#e8b830', '#50C878', '#4682B4', '#E0115F', '#c8b8e8',
+    '#cd7f32', '#8aafc8', '#d0e8f0', '#b87333', '#3CB371',
+    '#FF6B6B', '#4ECDC4', '#FFE66D', '#A78BFA', '#F472B6',
+    '#34D399'
+  ];
+
   // Render 16 slots, filling with wallet NFTs in order
   grid.innerHTML = '';
   for (var j = 0; j < TOTAL_SLOTS; j++) {
@@ -1300,15 +1308,12 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
     var nftMeta = nft ? (nft.metadata || {}) : {};
     var nftImage = hasNft ? (nftMeta.image || '') : '';
     var nftName = hasNft ? (nftMeta.name || 'Award') : '';
-    // Cycle through tier colors for slot borders
-    var colorIdx = j % TIER_KEYS.length;
-    var color = TIER_COLORS[TIER_KEYS[colorIdx]];
+    var slotColor = SLOT_COLORS[j % SLOT_COLORS.length];
 
     var slot = document.createElement('div');
     slot.className = 'gallery-slot' + (hasNft ? ' earned' : ' locked');
     if (hasNft) {
-      slot.style.setProperty('--slot-color', color);
-      slot.style.borderColor = color;
+      slot.style.borderColor = 'rgba(255,255,255,0.1)';
     }
 
     var icon = document.createElement('div');
@@ -1330,6 +1335,7 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
     var nameEl = document.createElement('div');
     nameEl.className = 'gallery-slot-name';
     nameEl.textContent = hasNft ? nftName : 'Locked';
+    if (hasNft) nameEl.style.color = slotColor;
 
     var reason = hasNft ? getAwardReason(nft) : '';
     var status = document.createElement('div');
