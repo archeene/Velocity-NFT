@@ -747,6 +747,38 @@
       from { opacity: 0; }
       to { opacity: 1; }
     }
+    .booking-popup {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+    }
+    .booking-popup-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .booking-popup-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    .booking-popup-phone {
+      display: block;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--sz-green-light);
+      text-decoration: none;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--accent-dim);
+    }
     .gallery-slot-number {
       font-family: 'Fredoka', sans-serif;
       font-size: 16px;
@@ -910,7 +942,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
       Claim to Wallet
     </a>
-    <a href="https://www.stretchzone.com/locations/westborough" class="btn btn-book" target="_blank" rel="noopener">
+    <a href="tel:+15083291134" class="btn btn-book" onclick="event.preventDefault(); document.getElementById('bookingPopup').classList.add('active');">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Book Your Next Session
     </a>
@@ -920,6 +952,16 @@
   <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
     <img id="lightboxImg" src="" alt="">
     <div class="lightbox-name" id="lightboxName"></div>
+  </div>
+
+  <!-- Booking Popup -->
+  <div class="lightbox-overlay" id="bookingPopup" onclick="this.classList.remove('active')">
+    <div class="booking-popup" onclick="event.stopPropagation()">
+      <div class="booking-popup-title">Book Your Next Session</div>
+      <div class="booking-popup-text">Call Stretch Zone Westborough to schedule:</div>
+      <a href="tel:+15083291134" class="booking-popup-phone">(508) 329-1134</a>
+      <button class="btn btn-secondary" style="width:100%; margin-top:16px;" onclick="document.getElementById('bookingPopup').classList.remove('active')">Close</button>
+    </div>
   </div>
 
   <!-- Footer -->
