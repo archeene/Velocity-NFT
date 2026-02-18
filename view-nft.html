@@ -655,6 +655,19 @@
     .gallery-slot-icon {
       font-size: 20px;
       line-height: 1;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 6px;
+    }
+    .gallery-slot-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 6px;
     }
     .gallery-slot-number {
       font-family: 'Fredoka', sans-serif;
@@ -698,7 +711,7 @@
         gap: 6px;
       }
       .gallery-slot { padding: 8px 2px; }
-      .gallery-slot-icon { font-size: 16px; }
+      .gallery-slot-icon { font-size: 16px; width: 28px; height: 28px; }
       .gallery-slot-number { font-size: 14px; }
       .gallery-slot-name { font-size: 8px; }
     }
@@ -1089,7 +1102,27 @@ const TIER_GLOWS = {
   100: 'rgba(200,184,232,0.4)'
 };
 
-function renderGallery(currentMilestone) {
+// Save NFT image URL to localStorage for building collection over time
+function saveNFTImage(milestone, imageUrl) {
+  if (!milestone || !imageUrl) return;
+  try {
+    var stored = JSON.parse(localStorage.getItem('sz_nft_images') || '{}');
+    stored[milestone] = imageUrl;
+    localStorage.setItem('sz_nft_images', JSON.stringify(stored));
+  } catch(e) {}
+}
+
+function getNFTImages() {
+  try {
+    return JSON.parse(localStorage.getItem('sz_nft_images') || '{}');
+  } catch(e) { return {}; }
+}
+
+function renderGallery(currentMilestone, currentImage) {
+  // Save current milestone image to localStorage
+  if (currentImage) saveNFTImage(currentMilestone, currentImage);
+  var savedImages = getNFTImages();
+
   var grid = document.getElementById('galleryGrid');
   grid.innerHTML = '';
   for (var i = 0; i < TIER_KEYS.length; i++) {
@@ -1097,6 +1130,7 @@ function renderGallery(currentMilestone) {
     var t = TIERS[m];
     var earned = m <= currentMilestone;
     var isCurrent = m === currentMilestone;
+    var nftImageUrl = isCurrent ? (currentImage || savedImages[m]) : savedImages[m];
     var slot = document.createElement('div');
     slot.className = 'gallery-slot' + (earned ? ' earned' : ' locked') + (isCurrent ? ' current' : '');
     if (earned) {
@@ -1106,7 +1140,15 @@ function renderGallery(currentMilestone) {
     }
     var icon = document.createElement('div');
     icon.className = 'gallery-slot-icon';
-    icon.textContent = earned ? t.icon : '\u{1F512}';
+    if (earned && nftImageUrl) {
+      var img = document.createElement('img');
+      img.src = nftImageUrl;
+      img.alt = t.name;
+      img.onerror = function() { this.parentNode.textContent = t.icon; };
+      icon.appendChild(img);
+    } else {
+      icon.textContent = earned ? t.icon : '\u{1F512}';
+    }
     var num = document.createElement('div');
     num.className = 'gallery-slot-number';
     num.textContent = earned ? m : '??';
@@ -1134,14 +1176,14 @@ function demoSwitch() {
   if (p.has('m') || p.has('id') || p.has('mint')) return;
   demoIdx = (demoIdx + 1) % 10;
   render({ milestone: demoTiers[demoIdx], name: demoNames[demoIdx] });
-  renderGallery(demoTiers[demoIdx]);
+  renderGallery(demoTiers[demoIdx], null);
 }
 
 // Init
 (function() {
   const data = getParams();
   render(data);
-  renderGallery(data.milestone);
+  renderGallery(data.milestone, data.image);
 
   if (!window.location.search || window.location.search === '?') {
     document.getElementById('artworkWrap').style.cursor = 'pointer';
