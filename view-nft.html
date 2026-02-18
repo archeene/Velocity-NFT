@@ -536,13 +536,30 @@
       color: var(--text-muted);
     }
 
-    /* ── Tier color overrides ── */
+    /* ── Hide badge artwork when AI image is loaded ── */
+    .artwork-wrap.has-image .badge-artwork { display: none; }
+
+    /* ── Tier color overrides (10 tiers) ── */
+    .tier-copper {
+      --tier-accent: #b87333;
+      --tier-glow: rgba(184, 115, 51, 0.3);
+      --tier-dim: rgba(184, 115, 51, 0.1);
+      --tier-bg-from: #1a1008;
+      --tier-bg-to: #0a0804;
+    }
     .tier-bronze {
       --tier-accent: #cd7f32;
       --tier-glow: rgba(205, 127, 50, 0.3);
       --tier-dim: rgba(205, 127, 50, 0.1);
       --tier-bg-from: #1a1208;
       --tier-bg-to: #0a0804;
+    }
+    .tier-iron {
+      --tier-accent: #71797E;
+      --tier-glow: rgba(113, 121, 126, 0.3);
+      --tier-dim: rgba(113, 121, 126, 0.1);
+      --tier-bg-from: #0e1012;
+      --tier-bg-to: #060708;
     }
     .tier-silver {
       --tier-accent: #8aafc8;
@@ -558,12 +575,132 @@
       --tier-bg-from: #181408;
       --tier-bg-to: #0a0804;
     }
+    .tier-emerald {
+      --tier-accent: #50C878;
+      --tier-glow: rgba(80, 200, 120, 0.3);
+      --tier-dim: rgba(80, 200, 120, 0.1);
+      --tier-bg-from: #081a0e;
+      --tier-bg-to: #040a06;
+    }
+    .tier-sapphire {
+      --tier-accent: #4682B4;
+      --tier-glow: rgba(70, 130, 180, 0.3);
+      --tier-dim: rgba(70, 130, 180, 0.1);
+      --tier-bg-from: #080e1a;
+      --tier-bg-to: #04060a;
+    }
+    .tier-ruby {
+      --tier-accent: #E0115F;
+      --tier-glow: rgba(224, 17, 95, 0.3);
+      --tier-dim: rgba(224, 17, 95, 0.1);
+      --tier-bg-from: #1a080e;
+      --tier-bg-to: #0a0406;
+    }
+    .tier-diamond {
+      --tier-accent: #d0e8f0;
+      --tier-glow: rgba(208, 232, 240, 0.35);
+      --tier-dim: rgba(208, 232, 240, 0.1);
+      --tier-bg-from: #0e1418;
+      --tier-bg-to: #060a0c;
+    }
     .tier-platinum {
       --tier-accent: #c8b8e8;
       --tier-glow: rgba(200, 184, 232, 0.35);
       --tier-dim: rgba(200, 184, 232, 0.1);
       --tier-bg-from: #10081a;
       --tier-bg-to: #060410;
+    }
+
+    /* ── Achievement Gallery ── */
+    .gallery {
+      margin-top: 24px;
+      animation: fadeUp 0.7s ease-out 0.2s both;
+    }
+    .gallery-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .gallery-slot {
+      background: var(--bg-card);
+      border: 2px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px 4px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .gallery-slot.earned {
+      border-color: var(--slot-color, #cd7f32);
+      background: rgba(255,255,255,0.03);
+    }
+    .gallery-slot.current {
+      box-shadow: 0 0 16px var(--slot-glow, rgba(205, 127, 50, 0.4));
+    }
+    .gallery-slot.locked {
+      opacity: 0.35;
+      filter: grayscale(0.6);
+    }
+    .gallery-slot-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .gallery-slot-number {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .gallery-slot.locked .gallery-slot-number {
+      color: var(--text-muted);
+    }
+    .gallery-slot-name {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--slot-color, var(--text-muted));
+    }
+    .gallery-slot.locked .gallery-slot-name {
+      color: var(--text-muted);
+    }
+    .gallery-slot-status {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+    .gallery-slot.earned .gallery-slot-status {
+      color: #2E8B57;
+      background: rgba(46, 139, 87, 0.15);
+    }
+    .gallery-slot.locked .gallery-slot-status {
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.04);
+    }
+    @media (max-width: 420px) {
+      .gallery-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+      }
+      .gallery-slot { padding: 8px 2px; }
+      .gallery-slot-icon { font-size: 16px; }
+      .gallery-slot-number { font-size: 14px; }
+      .gallery-slot-name { font-size: 8px; }
     }
 
     /* ── Responsive ── */
@@ -672,6 +809,12 @@
     </div>
   </div>
 
+  <!-- Achievement Gallery -->
+  <div class="gallery">
+    <h3 class="gallery-title">Your Achievement Collection</h3>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+
   <!-- Footer -->
   <div class="footer">
     <div class="footer-blockchain">Your achievement is permanently recorded on the Polygon blockchain.</div>
@@ -689,44 +832,104 @@
 //  TIER CONFIG
 // ═══════════════════════════════════════════════
 const TIERS = {
-  25: {
-    name: 'Bronze',
-    css: 'tier-bronze',
-    title: '25 Visit Starter',
+  10: {
+    name: 'Copper',
+    css: 'tier-copper',
+    title: '10 Visit Starter',
     icon: '\u2B50',
     badge: 'STARTER',
+    corner: 'COPPER',
+    desc: 'Your wellness journey at Stretch Zone Westborough is off to an incredible start! 10 practitioner-assisted stretch sessions and your body is already thanking you.',
+    label: 'Copper Tier'
+  },
+  20: {
+    name: 'Bronze',
+    css: 'tier-bronze',
+    title: '20 Visit Igniter',
+    icon: '\u{1F525}',
+    badge: 'IGNITER',
     corner: 'BRONZE',
-    desc: 'Your wellness journey at Stretch Zone Westborough is off to an incredible start! 25 practitioner-assisted stretch sessions and your body is already thanking you. This is just the beginning!',
+    desc: '20 sessions in! Your flexibility is building momentum at Stretch Zone Westborough. The fire is lit and your body is transforming!',
     label: 'Bronze Tier'
   },
-  50: {
+  30: {
+    name: 'Iron',
+    css: 'tier-iron',
+    title: '30 Visit Defender',
+    icon: '\u{1F6E1}',
+    badge: 'DEFENDER',
+    corner: 'IRON',
+    desc: '30 sessions of building your body\'s armor at Stretch Zone Westborough. Your resilience is ironclad and your commitment is unshakable!',
+    label: 'Iron Tier'
+  },
+  40: {
     name: 'Silver',
     css: 'tier-silver',
-    title: '50 Visit Warrior',
-    icon: '\u{1F6E1}',
+    title: '40 Visit Warrior',
+    icon: '\u{2694}',
     badge: 'WARRIOR',
     corner: 'SILVER',
-    desc: 'Half a century of stretches at Stretch Zone Westborough! Your flexibility and recovery have leveled up. You are a true wellness warrior, and your practitioner team is proud of you!',
+    desc: '40 sessions strong at Stretch Zone Westborough! You have sharpened your flexibility like a blade. A true wellness warrior!',
     label: 'Silver Tier'
   },
-  75: {
+  50: {
     name: 'Gold',
     css: 'tier-gold',
-    title: '75 Visit Champion',
+    title: '50 Visit Champion',
     icon: '\u{1F451}',
     badge: 'CHAMPION',
     corner: 'GOLD',
-    desc: '75 sessions of investing in yourself at Stretch Zone Westborough. Your dedication to flexibility and recovery is truly championship-level. You inspire everyone around you!',
+    desc: 'Half a century of stretches at Stretch Zone Westborough! Your dedication to flexibility and recovery is truly championship-level!',
     label: 'Gold Tier'
+  },
+  60: {
+    name: 'Emerald',
+    css: 'tier-emerald',
+    title: '60 Visit Gem',
+    icon: '\u{1F48E}',
+    badge: 'GEM',
+    corner: 'EMERALD',
+    desc: '60 sessions in! You are a rare gem at Stretch Zone Westborough. Your consistency shines brighter than any emerald!',
+    label: 'Emerald Tier'
+  },
+  70: {
+    name: 'Sapphire',
+    css: 'tier-sapphire',
+    title: '70 Visit Diamond',
+    icon: '\u{1F537}',
+    badge: 'DIAMOND',
+    corner: 'SAPPHIRE',
+    desc: '70 sessions of brilliance at Stretch Zone Westborough! Like a sapphire, your commitment is precious and enduring!',
+    label: 'Sapphire Tier'
+  },
+  80: {
+    name: 'Ruby',
+    css: 'tier-ruby',
+    title: '80 Visit Victor',
+    icon: '\u{1F3C6}',
+    badge: 'VICTOR',
+    corner: 'RUBY',
+    desc: '80 sessions of victory at Stretch Zone Westborough! Your passion burns like a ruby. You are in truly elite territory!',
+    label: 'Ruby Tier'
+  },
+  90: {
+    name: 'Diamond',
+    css: 'tier-diamond',
+    title: '90 Visit Force',
+    icon: '\u{26A1}',
+    badge: 'FORCE',
+    corner: 'DIAMOND',
+    desc: '90 sessions! You are an unstoppable force at Stretch Zone Westborough. Diamond-level dedication that cuts through any challenge!',
+    label: 'Diamond Tier'
   },
   100: {
     name: 'Platinum',
     css: 'tier-platinum',
     title: '100 Visit Legend',
-    icon: '\u{1F48E}',
+    icon: '\u{267E}',
     badge: 'LEGEND',
     corner: 'PLATINUM',
-    desc: '100 visits. One hundred times you chose to invest in your body at Stretch Zone Westborough. That commitment is rare, extraordinary, and legendary. You are part of an elite club!',
+    desc: '100 visits. One hundred times you chose to invest in your body at Stretch Zone Westborough. That commitment is rare, extraordinary, and legendary!',
     label: 'Platinum Tier'
   }
 };
@@ -737,7 +940,7 @@ const TIERS = {
 function createSparkles(milestone) {
   const container = document.getElementById('sparkles');
   container.innerHTML = '';
-  const count = milestone === 100 ? 18 : milestone === 75 ? 14 : milestone === 50 ? 10 : 8;
+  const count = Math.min(6 + Math.floor(milestone / 10) * 1.5, 20);
 
   for (let i = 0; i < count; i++) {
     const s = document.createElement('div');
@@ -759,7 +962,7 @@ function getParams() {
   const p = new URLSearchParams(window.location.search);
   return {
     nftId:     p.get('nftId'),
-    milestone: parseInt(p.get('m') || p.get('milestone') || '75'),
+    milestone: parseInt(p.get('m') || p.get('milestone') || '50'),
     name:      p.get('name') || 'Sarah M.',
     title:     p.get('title'),
     animal:    p.get('animal'),
@@ -785,7 +988,7 @@ async function fetchCrossmintImage(nftId, contract) {
 }
 
 function render(data) {
-  const tier = TIERS[data.milestone] || TIERS[75];
+  const tier = TIERS[data.milestone] || TIERS[50];
   const card = document.getElementById('nftCard');
 
   // Tier class
@@ -831,7 +1034,8 @@ function render(data) {
     img.src = url;
     img.alt = data.title || tier.title;
     img.loading = 'eager';
-    img.onerror = function() { img.remove(); };
+    img.onload = function() { wrap.classList.add('has-image'); };
+    img.onerror = function() { img.remove(); wrap.classList.remove('has-image'); };
     wrap.appendChild(img);
     document.getElementById('downloadBtn').href = url;
     document.getElementById('downloadBtn').download = (data.title || tier.title).toLowerCase().replace(/ /g, '-') + '.png';
@@ -870,22 +1074,74 @@ function render(data) {
   document.title = (data.title || tier.title) + ' - Stretch Zone Westborough';
 }
 
+// ═══════════════════════════════════════════════
+//  ACHIEVEMENT GALLERY
+// ═══════════════════════════════════════════════
+const TIER_KEYS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+const TIER_COLORS = {
+  10: '#b87333', 20: '#cd7f32', 30: '#71797E', 40: '#8aafc8', 50: '#e8b830',
+  60: '#50C878', 70: '#4682B4', 80: '#E0115F', 90: '#d0e8f0', 100: '#c8b8e8'
+};
+const TIER_GLOWS = {
+  10: 'rgba(184,115,51,0.4)', 20: 'rgba(205,127,50,0.4)', 30: 'rgba(113,121,126,0.4)',
+  40: 'rgba(138,175,200,0.4)', 50: 'rgba(232,184,48,0.4)', 60: 'rgba(80,200,120,0.4)',
+  70: 'rgba(70,130,180,0.4)', 80: 'rgba(224,17,95,0.4)', 90: 'rgba(208,232,240,0.4)',
+  100: 'rgba(200,184,232,0.4)'
+};
+
+function renderGallery(currentMilestone) {
+  var grid = document.getElementById('galleryGrid');
+  grid.innerHTML = '';
+  for (var i = 0; i < TIER_KEYS.length; i++) {
+    var m = TIER_KEYS[i];
+    var t = TIERS[m];
+    var earned = m <= currentMilestone;
+    var isCurrent = m === currentMilestone;
+    var slot = document.createElement('div');
+    slot.className = 'gallery-slot' + (earned ? ' earned' : ' locked') + (isCurrent ? ' current' : '');
+    if (earned) {
+      slot.style.setProperty('--slot-color', TIER_COLORS[m]);
+      if (isCurrent) slot.style.setProperty('--slot-glow', TIER_GLOWS[m]);
+      slot.style.borderColor = TIER_COLORS[m];
+    }
+    var icon = document.createElement('div');
+    icon.className = 'gallery-slot-icon';
+    icon.textContent = earned ? t.icon : '\u{1F512}';
+    var num = document.createElement('div');
+    num.className = 'gallery-slot-number';
+    num.textContent = earned ? m : '??';
+    var name = document.createElement('div');
+    name.className = 'gallery-slot-name';
+    name.textContent = earned ? t.name : 'Locked';
+    var status = document.createElement('div');
+    status.className = 'gallery-slot-status';
+    status.textContent = earned ? 'EARNED' : 'LOCKED';
+    slot.appendChild(icon);
+    slot.appendChild(num);
+    slot.appendChild(name);
+    slot.appendChild(status);
+    grid.appendChild(slot);
+  }
+}
+
 // ── Demo: click artwork to cycle tiers ──
 let demoIdx = 0;
-const demoTiers = [25, 50, 75, 100];
-const demoNames = ['Alex T.', 'Jordan K.', 'Sarah M.', 'Chris W.'];
+const demoTiers = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+const demoNames = ['Alex T.', 'Jordan K.', 'Sarah M.', 'Chris W.', 'Pat R.', 'Sam L.', 'Taylor B.', 'Morgan F.', 'Casey D.', 'Quinn H.'];
 
 function demoSwitch() {
   const p = new URLSearchParams(window.location.search);
   if (p.has('m') || p.has('id') || p.has('mint')) return;
-  demoIdx = (demoIdx + 1) % 4;
+  demoIdx = (demoIdx + 1) % 10;
   render({ milestone: demoTiers[demoIdx], name: demoNames[demoIdx] });
+  renderGallery(demoTiers[demoIdx]);
 }
 
 // Init
 (function() {
   const data = getParams();
   render(data);
+  renderGallery(data.milestone);
 
   if (!window.location.search || window.location.search === '?') {
     document.getElementById('artworkWrap').style.cursor = 'pointer';
