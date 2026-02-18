@@ -758,13 +758,30 @@ function createSparkles(milestone) {
 function getParams() {
   const p = new URLSearchParams(window.location.search);
   return {
-    id:        p.get('id'),
+    nftId:     p.get('nftId'),
     milestone: parseInt(p.get('m') || p.get('milestone') || '75'),
     name:      p.get('name') || 'Sarah M.',
+    title:     p.get('title'),
+    animal:    p.get('animal'),
+    exercise:  p.get('exercise'),
     image:     p.get('image'),
-    mintHash:  p.get('mint'),
+    contract:  p.get('contract'),
     date:      p.get('date')
   };
+}
+
+// Fetch permanent image from Crossmint if we have an NFT ID
+async function fetchCrossmintImage(nftId, contract) {
+  if (!nftId) return null;
+  try {
+    var collectionId = contract || 'default-polygon';
+    var resp = await fetch('https://www.crossmint.com/api/2022-06-09/collections/' + collectionId + '/nfts/' + nftId, {
+      headers: { 'X-API-KEY': 'sk_production_5ZUNDbLXhfL738gKrNvixuuCNLeE7C7UUdoTfUxYRfTkfdq7Za4iceyzsLuCk3Rhhb2Kovnroy37ziSunRPQ64K4hEbxrWg69mtYc4giKVpSqSJ9R427Kd9p4GeTf4VtfCVND7Pyoy663nw276Js2iJfdbNp1Hdb859L1tY2V8YmFkhGQMkndYFqS636jTphYDqUf3EBWsMF7JG2tpEv4KfT' }
+    });
+    if (!resp.ok) return null;
+    var data = await resp.json();
+    return (data.metadata && data.metadata.image) || null;
+  } catch(e) { return null; }
 }
 
 function render(data) {
@@ -777,7 +794,7 @@ function render(data) {
   // Badge artwork
   document.getElementById('badgeNumber').textContent = data.milestone;
   document.getElementById('badgeIcon').textContent = tier.icon;
-  document.getElementById('badgeTierName').textContent = tier.badge;
+  document.getElementById('badgeTierName').textContent = data.title || tier.badge;
   document.getElementById('badgeCorner').textContent = tier.corner;
 
   // Sparkles
@@ -785,10 +802,18 @@ function render(data) {
 
   // Card details
   document.getElementById('tierLabel').textContent = tier.label;
-  document.getElementById('cardTitle').textContent = tier.title;
+  document.getElementById('cardTitle').textContent = data.title || tier.title;
   document.getElementById('awardedTo').textContent = data.name;
   document.getElementById('milestoneVal').textContent = data.milestone + ' Visits';
-  document.getElementById('cardDesc').textContent = tier.desc;
+
+  // Custom description using animal + exercise if available
+  if (data.animal) {
+    document.getElementById('cardDesc').textContent =
+      'Your ' + data.milestone + '-visit milestone collectible featuring a ' + data.animal + ' ' + (data.exercise || '') +
+      '. This digital achievement celebrates your commitment to wellness at Stretch Zone Westborough.';
+  } else {
+    document.getElementById('cardDesc').textContent = tier.desc;
+  }
 
   // Date
   if (data.date) {
@@ -797,31 +822,52 @@ function render(data) {
     document.getElementById('awardDate').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
-  // Real AI image (from Gemini) overlays the placeholder
-  if (data.image) {
-    const wrap = document.getElementById('artworkWrap');
-    const img = document.createElement('img');
+  // Load image
+  function showImage(url) {
+    if (!url) { document.getElementById('downloadBtn').style.display = 'none'; return; }
+    var wrap = document.getElementById('artworkWrap');
+    var img = document.createElement('img');
     img.className = 'ai-image';
-    img.src = data.image;
-    img.alt = tier.title;
+    img.src = url;
+    img.alt = data.title || tier.title;
     img.loading = 'eager';
     img.onerror = function() { img.remove(); };
     wrap.appendChild(img);
+    document.getElementById('downloadBtn').href = url;
+    document.getElementById('downloadBtn').download = (data.title || tier.title).toLowerCase().replace(/ /g, '-') + '.png';
+  }
 
-    document.getElementById('downloadBtn').href = data.image;
-    document.getElementById('downloadBtn').download = tier.title.toLowerCase().replace(/ /g, '-') + '.png';
+  // Try tmpfiles image first, then fetch permanent IPFS image from Crossmint
+  if (data.image) {
+    showImage(data.image);
+    // Also try to get permanent IPFS URL in background
+    if (data.nftId) {
+      fetchCrossmintImage(data.nftId, data.contract).then(function(ipfsUrl) {
+        if (ipfsUrl) {
+          var wrap = document.getElementById('artworkWrap');
+          var existing = wrap.querySelector('img.ai-image');
+          if (existing) { existing.src = ipfsUrl; }
+          document.getElementById('downloadBtn').href = ipfsUrl;
+        }
+      });
+    }
+  } else if (data.nftId) {
+    // No temp image (expired), fetch from Crossmint
+    fetchCrossmintImage(data.nftId, data.contract).then(function(ipfsUrl) {
+      showImage(ipfsUrl);
+    });
   } else {
     document.getElementById('downloadBtn').style.display = 'none';
   }
 
   // Blockchain link
-  if (data.mintHash) {
-    document.getElementById('solscanBtn').href = 'https://polygonscan.com/token/' + data.mintHash;
+  if (data.contract) {
+    document.getElementById('solscanBtn').href = 'https://polygonscan.com/token/' + data.contract;
   } else {
     document.getElementById('solscanBtn').style.display = 'none';
   }
 
-  document.title = tier.title + ' - Stretch Zone Westborough';
+  document.title = (data.title || tier.title) + ' - Stretch Zone Westborough';
 }
 
 // ── Demo: click artwork to cycle tiers ──
