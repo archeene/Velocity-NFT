@@ -626,8 +626,33 @@
     }
     .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .gallery-loading {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 13px;
+      grid-column: 1 / -1;
+    }
+    .gallery-loading .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-subtle);
+      border-top-color: var(--sz-green-light);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .gallery-empty {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 13px;
+      grid-column: 1 / -1;
     }
     .gallery-slot {
       background: var(--bg-card);
@@ -655,13 +680,13 @@
     .gallery-slot-icon {
       font-size: 20px;
       line-height: 1;
-      width: 36px;
-      height: 36px;
+      width: 64px;
+      height: 64px;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      border-radius: 6px;
+      border-radius: 8px;
     }
     .gallery-slot-icon img {
       width: 100%;
@@ -707,12 +732,11 @@
     }
     @media (max-width: 420px) {
       .gallery-grid {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 6px;
       }
-      .gallery-slot { padding: 8px 2px; }
-      .gallery-slot-icon { font-size: 16px; width: 28px; height: 28px; }
-      .gallery-slot-number { font-size: 14px; }
+      .gallery-slot { padding: 8px 4px; }
+      .gallery-slot-icon { font-size: 16px; width: 48px; height: 48px; }
       .gallery-slot-name { font-size: 8px; }
     }
 
@@ -986,7 +1010,9 @@ function getParams() {
     exercise:  p.get('exercise'),
     image:     p.get('image'),
     contract:  p.get('contract'),
-    date:      p.get('date')
+    date:      p.get('date'),
+    email:     p.get('email'),
+    event:     p.get('event')
   };
 }
 
@@ -1097,79 +1123,86 @@ function render(data) {
 }
 
 // ═══════════════════════════════════════════════
-//  ACHIEVEMENT GALLERY
+//  ACHIEVEMENT GALLERY (wallet-based)
 // ═══════════════════════════════════════════════
-const TIER_KEYS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-const TIER_COLORS = {
-  10: '#b87333', 20: '#cd7f32', 30: '#71797E', 40: '#8aafc8', 50: '#e8b830',
-  60: '#50C878', 70: '#4682B4', 80: '#E0115F', 90: '#d0e8f0', 100: '#c8b8e8'
-};
-const TIER_GLOWS = {
-  10: 'rgba(184,115,51,0.4)', 20: 'rgba(205,127,50,0.4)', 30: 'rgba(113,121,126,0.4)',
-  40: 'rgba(138,175,200,0.4)', 50: 'rgba(232,184,48,0.4)', 60: 'rgba(80,200,120,0.4)',
-  70: 'rgba(70,130,180,0.4)', 80: 'rgba(224,17,95,0.4)', 90: 'rgba(208,232,240,0.4)',
-  100: 'rgba(200,184,232,0.4)'
-};
+const CROSSMINT_KEY = 'sk_production_5ZUNDbLXhfL738gKrNvixuuCNLeE7C7UUdoTfUxYRfTkfdq7Za4iceyzsLuCk3Rhhb2Kovnroy37ziSunRPQ64K4hEbxrWg69mtYc4giKVpSqSJ9R427Kd9p4GeTf4VtfCVND7Pyoy663nw276Js2iJfdbNp1Hdb859L1tY2V8YmFkhGQMkndYFqS636jTphYDqUf3EBWsMF7JG2tpEv4KfT';
 
-// Save NFT image URL to localStorage for building collection over time
-function saveNFTImage(milestone, imageUrl) {
-  if (!milestone || !imageUrl) return;
+async function fetchWalletNFTs(email) {
+  if (!email) return [];
   try {
-    var stored = JSON.parse(localStorage.getItem('sz_nft_images') || '{}');
-    stored[milestone] = imageUrl;
-    localStorage.setItem('sz_nft_images', JSON.stringify(stored));
-  } catch(e) {}
-}
-
-function getNFTImages() {
-  try {
-    return JSON.parse(localStorage.getItem('sz_nft_images') || '{}');
-  } catch(e) { return {}; }
-}
-
-function renderGallery(currentMilestone, currentImage) {
-  // Save current milestone image to localStorage
-  if (currentImage) saveNFTImage(currentMilestone, currentImage);
-  var savedImages = getNFTImages();
-
-  var grid = document.getElementById('galleryGrid');
-  grid.innerHTML = '';
-  for (var i = 0; i < TIER_KEYS.length; i++) {
-    var m = TIER_KEYS[i];
-    var t = TIERS[m];
-    var earned = m <= currentMilestone;
-    var isCurrent = m === currentMilestone;
-    var nftImageUrl = isCurrent ? (currentImage || savedImages[m]) : savedImages[m];
-    var slot = document.createElement('div');
-    slot.className = 'gallery-slot' + (earned ? ' earned' : ' locked') + (isCurrent ? ' current' : '');
-    if (earned) {
-      slot.style.setProperty('--slot-color', TIER_COLORS[m]);
-      if (isCurrent) slot.style.setProperty('--slot-glow', TIER_GLOWS[m]);
-      slot.style.borderColor = TIER_COLORS[m];
+    var locator = 'email:' + email + ':polygon';
+    var allNfts = [];
+    var page = 1;
+    var hasMore = true;
+    while (hasMore) {
+      var resp = await fetch(
+        'https://www.crossmint.com/api/2022-06-09/wallets/' + encodeURIComponent(locator) + '/nfts?page=' + page + '&perPage=50',
+        { headers: { 'X-API-KEY': CROSSMINT_KEY } }
+      );
+      if (!resp.ok) break;
+      var data = await resp.json();
+      var nfts = Array.isArray(data) ? data : (data.nfts || data.results || data.data || []);
+      allNfts = allNfts.concat(nfts);
+      if (nfts.length < 50) { hasMore = false; } else { page++; }
     }
+    return allNfts;
+  } catch(e) {
+    console.error('Failed to fetch wallet NFTs:', e);
+    return [];
+  }
+}
+
+function renderGallery(walletNfts, currentNftId) {
+  var grid = document.getElementById('galleryGrid');
+  var titleEl = document.querySelector('.gallery-title');
+
+  if (!walletNfts || walletNfts.length === 0) {
+    titleEl.textContent = 'Your Collection';
+    grid.innerHTML = '<div class="gallery-empty">No collectibles found yet. Keep stretching!</div>';
+    return;
+  }
+
+  titleEl.textContent = 'Your Collection (' + walletNfts.length + ')';
+  grid.innerHTML = '';
+
+  for (var i = 0; i < walletNfts.length; i++) {
+    var nft = walletNfts[i];
+    var meta = nft.metadata || {};
+    var nftName = meta.name || 'Achievement';
+    var nftImage = meta.image || '';
+    var nftId = nft.id || nft.tokenId || '';
+    var isCurrent = currentNftId && (nftId === currentNftId || nft.tokenId === currentNftId);
+
+    var slot = document.createElement('div');
+    slot.className = 'gallery-slot earned' + (isCurrent ? ' current' : '');
+    slot.style.setProperty('--slot-color', isCurrent ? '#3CB371' : '#2E8B57');
+    slot.style.borderColor = isCurrent ? '#3CB371' : 'rgba(46, 139, 87, 0.3)';
+    if (isCurrent) slot.style.setProperty('--slot-glow', 'rgba(60, 179, 113, 0.4)');
+
     var icon = document.createElement('div');
     icon.className = 'gallery-slot-icon';
-    if (earned && nftImageUrl) {
+    if (nftImage) {
       var img = document.createElement('img');
-      img.src = nftImageUrl;
-      img.alt = t.name;
-      img.onerror = function() { this.parentNode.textContent = t.icon; };
+      img.src = nftImage;
+      img.alt = nftName;
+      img.loading = 'lazy';
+      img.onerror = function() { this.parentNode.textContent = '\u{1F3C6}'; };
       icon.appendChild(img);
     } else {
-      icon.textContent = earned ? t.icon : '\u{1F512}';
+      icon.textContent = '\u{1F3C6}';
     }
-    var num = document.createElement('div');
-    num.className = 'gallery-slot-number';
-    num.textContent = earned ? m : '??';
-    var name = document.createElement('div');
-    name.className = 'gallery-slot-name';
-    name.textContent = earned ? t.name : 'Locked';
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'gallery-slot-name';
+    nameEl.textContent = nftName;
+    nameEl.style.color = 'var(--text-primary)';
+
     var status = document.createElement('div');
     status.className = 'gallery-slot-status';
-    status.textContent = earned ? 'EARNED' : 'LOCKED';
+    status.textContent = isCurrent ? 'VIEWING' : 'EARNED';
+
     slot.appendChild(icon);
-    slot.appendChild(num);
-    slot.appendChild(name);
+    slot.appendChild(nameEl);
     slot.appendChild(status);
     grid.appendChild(slot);
   }
@@ -1192,7 +1225,18 @@ function demoSwitch() {
 (function() {
   const data = getParams();
   render(data);
-  renderGallery(data.milestone, data.image);
+
+  // Fetch all wallet NFTs from Crossmint and render collection
+  if (data.email) {
+    var grid = document.getElementById('galleryGrid');
+    grid.innerHTML = '<div class="gallery-loading"><div class="spinner"></div><br>Loading your collection...</div>';
+    fetchWalletNFTs(data.email).then(function(nfts) {
+      renderGallery(nfts, data.nftId);
+    });
+  } else {
+    // No email param (old link), show empty state
+    renderGallery([], data.nftId);
+  }
 
   if (!window.location.search || window.location.search === '?') {
     document.getElementById('artworkWrap').style.cursor = 'pointer';
