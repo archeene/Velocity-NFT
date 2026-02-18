@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Achievement - Stretch Zone Westborough</title>
+  <meta name="description" content="View your Stretch Zone Westborough milestone achievement collectible">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sz-green: #2E8B57;
+      --sz-green-light: #3CB371;
+      --sz-green-dark: #1a5e38;
+      --bg-primary: #080c10;
+      --bg-card: #0f1318;
+      --bg-card-inner: #161c24;
+      --border-subtle: rgba(46, 139, 87, 0.12);
+      --text-primary: #eef2f0;
+      --text-secondary: #8a9a90;
+      --text-muted: #556660;
+      --accent: #2E8B57;
+      --accent-dim: rgba(46, 139, 87, 0.15);
+      --accent-glow: rgba(46, 139, 87, 0.25);
+      --tier-accent: #cd7f32;
+      --tier-glow: rgba(205, 127, 50, 0.3);
+      --tier-dim: rgba(205, 127, 50, 0.12);
+      --tier-bg-from: #1a1208;
+      --tier-bg-to: #0a0804;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, var(--tier-glow) 0%, transparent 65%);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      padding: 20px 20px 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      padding: 12px 0 24px;
+    }
+
+    .sz-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .sz-logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--sz-green);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sz-logo-icon svg { width: 18px; height: 18px; }
+
+    .sz-logo-text {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .sz-location {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--sz-green-light);
+      opacity: 0.7;
+    }
+
+    /* ── NFT Card ── */
+    .nft-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      overflow: hidden;
+      animation: fadeUp 0.7s ease-out;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Artwork Area ── */
+    .artwork-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      overflow: hidden;
+    }
+
+    /* When Gemini image is loaded */
+    .artwork-wrap > img.ai-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 2;
+    }
+
+    /* ── Placeholder Badge (centered) ── */
+    .badge-artwork {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 45%, var(--tier-bg-from) 0%, var(--tier-bg-to) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient glow behind badge */
+    .badge-artwork::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--tier-glow) 0%, transparent 70%);
+      opacity: 0.5;
+      animation: badge-breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes badge-breathe {
+      0%, 100% { opacity: 0.4; transform: translate(-50%, -55%) scale(1); }
+      50% { opacity: 0.6; transform: translate(-50%, -55%) scale(1.08); }
+    }
+
+    /* Sparkle particles */
+    .sparkles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--tier-accent);
+      animation: sparkle-float linear infinite;
+    }
+
+    @keyframes sparkle-float {
+      0% { opacity: 0; transform: translateY(0) scale(0.5); }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-80px) scale(0.2); }
+    }
+
+    /* The badge itself */
+    .badge-center {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Outer ring */
+    .badge-ring-outer {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: ring-rotate 20s linear infinite;
+      position: relative;
+    }
+
+    @keyframes ring-rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Decorative dots on outer ring */
+    .badge-ring-outer::before,
+    .badge-ring-outer::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--tier-accent);
+      opacity: 0.5;
+    }
+    .badge-ring-outer::before { top: -3px; left: 50%; transform: translateX(-50%); }
+    .badge-ring-outer::after { bottom: -3px; left: 50%; transform: translateX(-50%); }
+
+    /* Inner ring */
+    .badge-ring-inner {
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      border: 3px solid var(--tier-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 30px var(--tier-glow),
+        inset 0 0 30px rgba(0,0,0,0.3);
+      animation: ring-pulse 3s ease-in-out infinite;
+      /* Counter-rotate to stay still inside the spinning outer ring */
+      position: absolute;
+    }
+
+    @keyframes ring-pulse {
+      0%, 100% { box-shadow: 0 0 30px var(--tier-glow), inset 0 0 30px rgba(0,0,0,0.3); }
+      50% { box-shadow: 0 0 50px var(--tier-glow), inset 0 0 40px rgba(0,0,0,0.2); }
+    }
+
+    /* Badge content (counter-rotate to stay upright) */
+    .badge-content {
+      animation: ring-counter-rotate 20s linear infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @keyframes ring-counter-rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+
+    .badge-icon {
+      font-size: 36px;
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+
+    .badge-number {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 58px;
+      font-weight: 700;
+      color: var(--tier-accent);
+      line-height: 1;
+      text-shadow: 0 0 30px var(--tier-glow);
+    }
+
+    .badge-visits-label {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--tier-accent);
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+
+    /* Badge bottom text */
+    .badge-subtitle {
+      position: relative;
+      z-index: 1;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .badge-tier-name {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--tier-accent);
+      opacity: 0.5;
+    }
+
+    /* Tier corner label */
+    .badge-corner {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 1;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--tier-accent);
+      backdrop-filter: blur(8px);
+    }
+
+    /* SZ watermark */
+    .badge-watermark {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 1;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.12);
+    }
+
+    /* ── Card Details ── */
+    .card-body { padding: 24px; }
+
+    .card-tier-label {
+      display: inline-block;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--tier-accent);
+      background: var(--tier-dim);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .card-collection {
+      font-size: 13px;
+      color: var(--sz-green-light);
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    .card-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+      margin: 0 0 20px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .info-item { display: flex; flex-direction: column; gap: 3px; }
+
+    .info-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .chain-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(46, 139, 87, 0.1);
+      border-radius: 8px;
+      padding: 7px 12px;
+      margin-bottom: 18px;
+    }
+
+    .chain-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--sz-green-light);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .chain-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--sz-green-light);
+      letter-spacing: 0.3px;
+    }
+
+    .card-desc {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    /* ── Buttons ── */
+    .actions { display: flex; flex-direction: column; gap: 10px; }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--sz-green), var(--sz-green-light));
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card-inner);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(46, 139, 87, 0.08);
+      color: var(--text-primary);
+    }
+
+    .btn-book {
+      background: linear-gradient(135deg, var(--tier-accent), color-mix(in srgb, var(--tier-accent) 80%, white));
+      color: #0a0a0f;
+      margin-top: 4px;
+    }
+
+    .btn-book:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px var(--tier-glow);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 28px 20px 12px;
+    }
+
+    .footer-blockchain {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .footer-location {
+      font-size: 11px;
+      color: var(--text-muted);
+      opacity: 0.6;
+      line-height: 1.5;
+    }
+
+    .footer-location a {
+      color: var(--sz-green-light);
+      text-decoration: none;
+      opacity: 0.8;
+    }
+
+    .powered-by {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 10px;
+      opacity: 0.35;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ── Tier color overrides ── */
+    .tier-bronze {
+      --tier-accent: #cd7f32;
+      --tier-glow: rgba(205, 127, 50, 0.3);
+      --tier-dim: rgba(205, 127, 50, 0.1);
+      --tier-bg-from: #1a1208;
+      --tier-bg-to: #0a0804;
+    }
+    .tier-silver {
+      --tier-accent: #8aafc8;
+      --tier-glow: rgba(138, 175, 200, 0.3);
+      --tier-dim: rgba(138, 175, 200, 0.1);
+      --tier-bg-from: #0a1218;
+      --tier-bg-to: #040810;
+    }
+    .tier-gold {
+      --tier-accent: #e8b830;
+      --tier-glow: rgba(232, 184, 48, 0.3);
+      --tier-dim: rgba(232, 184, 48, 0.1);
+      --tier-bg-from: #181408;
+      --tier-bg-to: #0a0804;
+    }
+    .tier-platinum {
+      --tier-accent: #c8b8e8;
+      --tier-glow: rgba(200, 184, 232, 0.35);
+      --tier-dim: rgba(200, 184, 232, 0.1);
+      --tier-bg-from: #10081a;
+      --tier-bg-to: #060410;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 360px) {
+      .container { padding: 12px 14px 32px; }
+      .card-title { font-size: 20px; }
+      .badge-number { font-size: 46px; }
+      .badge-ring-outer { width: 170px; height: 170px; }
+      .badge-ring-inner { width: 154px; height: 154px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="sz-logo">
+      <div class="sz-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round">
+          <path d="M12 3c-3 4-6 6-6 10a6 6 0 0012 0c0-4-3-6-6-10z"/>
+        </svg>
+      </div>
+      <span class="sz-logo-text">Stretch Zone</span>
+    </div>
+    <div class="sz-location">Westborough, MA</div>
+  </div>
+
+  <!-- NFT Card -->
+  <div class="nft-card tier-gold" id="nftCard">
+
+    <!-- Artwork -->
+    <div class="artwork-wrap" id="artworkWrap">
+      <!-- Placeholder badge (centered) — AI image overlays this when available -->
+      <div class="badge-artwork" id="badgeArtwork">
+        <div class="sparkles" id="sparkles"></div>
+        <div class="badge-corner" id="badgeCorner">GOLD</div>
+        <div class="badge-center">
+          <div class="badge-ring-outer">
+            <div class="badge-ring-inner">
+              <div class="badge-content">
+                <div class="badge-icon" id="badgeIcon">&#x1F451;</div>
+                <div class="badge-number" id="badgeNumber">75</div>
+                <div class="badge-visits-label">visits</div>
+              </div>
+            </div>
+          </div>
+          <div class="badge-subtitle">
+            <div class="badge-tier-name" id="badgeTierName">CHAMPION</div>
+          </div>
+        </div>
+        <div class="badge-watermark">STRETCH ZONE</div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="card-body">
+      <div class="card-tier-label" id="tierLabel">Gold Tier</div>
+      <div class="card-title" id="cardTitle">75 Visit Champion</div>
+      <div class="card-collection">Stretch Zone Westborough Achievements</div>
+      <div class="card-divider"></div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Awarded To</span>
+          <span class="info-value" id="awardedTo">Sarah M.</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Date</span>
+          <span class="info-value" id="awardDate">Feb 16, 2026</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Milestone</span>
+          <span class="info-value" id="milestoneVal">75 Visits</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Network</span>
+          <span class="info-value">Polygon</span>
+        </div>
+      </div>
+
+      <div class="chain-badge">
+        <div class="chain-dot"></div>
+        <span class="chain-text">Verified on Blockchain</span>
+      </div>
+
+      <p class="card-desc" id="cardDesc">
+        This digital collectible celebrates your incredible commitment to wellness at Stretch Zone Westborough.
+      </p>
+
+      <div class="actions">
+        <a href="#" class="btn btn-primary" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save Image
+        </a>
+        <a href="#" class="btn btn-secondary" id="solscanBtn" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          View on Blockchain
+        </a>
+        <a href="https://www.stretchzone.com/locations/westborough" class="btn btn-book" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Book Your Next Session
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-blockchain">Your achievement is permanently recorded on the Polygon blockchain.</div>
+    <div class="footer-location">
+      <a href="https://www.stretchzone.com/locations/westborough">Stretch Zone Westborough</a><br>
+      131 Turnpike Rd, Westborough, MA 01581
+    </div>
+    <div class="powered-by">Secured by Crossmint on Polygon</div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  TIER CONFIG
+// ═══════════════════════════════════════════════
+const TIERS = {
+  25: {
+    name: 'Bronze',
+    css: 'tier-bronze',
+    title: '25 Visit Starter',
+    icon: '\u2B50',
+    badge: 'STARTER',
+    corner: 'BRONZE',
+    desc: 'Your wellness journey at Stretch Zone Westborough is off to an incredible start! 25 practitioner-assisted stretch sessions and your body is already thanking you. This is just the beginning!',
+    label: 'Bronze Tier'
+  },
+  50: {
+    name: 'Silver',
+    css: 'tier-silver',
+    title: '50 Visit Warrior',
+    icon: '\u{1F6E1}',
+    badge: 'WARRIOR',
+    corner: 'SILVER',
+    desc: 'Half a century of stretches at Stretch Zone Westborough! Your flexibility and recovery have leveled up. You are a true wellness warrior, and your practitioner team is proud of you!',
+    label: 'Silver Tier'
+  },
+  75: {
+    name: 'Gold',
+    css: 'tier-gold',
+    title: '75 Visit Champion',
+    icon: '\u{1F451}',
+    badge: 'CHAMPION',
+    corner: 'GOLD',
+    desc: '75 sessions of investing in yourself at Stretch Zone Westborough. Your dedication to flexibility and recovery is truly championship-level. You inspire everyone around you!',
+    label: 'Gold Tier'
+  },
+  100: {
+    name: 'Platinum',
+    css: 'tier-platinum',
+    title: '100 Visit Legend',
+    icon: '\u{1F48E}',
+    badge: 'LEGEND',
+    corner: 'PLATINUM',
+    desc: '100 visits. One hundred times you chose to invest in your body at Stretch Zone Westborough. That commitment is rare, extraordinary, and legendary. You are part of an elite club!',
+    label: 'Platinum Tier'
+  }
+};
+
+// ═══════════════════════════════════════════════
+//  SPARKLE PARTICLES
+// ═══════════════════════════════════════════════
+function createSparkles(milestone) {
+  const container = document.getElementById('sparkles');
+  container.innerHTML = '';
+  const count = milestone === 100 ? 18 : milestone === 75 ? 14 : milestone === 50 ? 10 : 8;
+
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.style.left = (15 + Math.random() * 70) + '%';
+    s.style.top = (40 + Math.random() * 50) + '%';
+    s.style.width = (2 + Math.random() * 3) + 'px';
+    s.style.height = s.style.width;
+    s.style.animationDuration = (2 + Math.random() * 3) + 's';
+    s.style.animationDelay = (Math.random() * 4) + 's';
+    container.appendChild(s);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  PAGE LOGIC
+// ═══════════════════════════════════════════════
+function getParams() {
+  const p = new URLSearchParams(window.location.search);
+  return {
+    id:        p.get('id'),
+    milestone: parseInt(p.get('m') || p.get('milestone') || '75'),
+    name:      p.get('name') || 'Sarah M.',
+    image:     p.get('image'),
+    mintHash:  p.get('mint'),
+    date:      p.get('date')
+  };
+}
+
+function render(data) {
+  const tier = TIERS[data.milestone] || TIERS[75];
+  const card = document.getElementById('nftCard');
+
+  // Tier class
+  card.className = 'nft-card ' + tier.css;
+
+  // Badge artwork
+  document.getElementById('badgeNumber').textContent = data.milestone;
+  document.getElementById('badgeIcon').textContent = tier.icon;
+  document.getElementById('badgeTierName').textContent = tier.badge;
+  document.getElementById('badgeCorner').textContent = tier.corner;
+
+  // Sparkles
+  createSparkles(data.milestone);
+
+  // Card details
+  document.getElementById('tierLabel').textContent = tier.label;
+  document.getElementById('cardTitle').textContent = tier.title;
+  document.getElementById('awardedTo').textContent = data.name;
+  document.getElementById('milestoneVal').textContent = data.milestone + ' Visits';
+  document.getElementById('cardDesc').textContent = tier.desc;
+
+  // Date
+  if (data.date) {
+    document.getElementById('awardDate').textContent = data.date;
+  } else {
+    document.getElementById('awardDate').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // Real AI image (from Gemini) overlays the placeholder
+  if (data.image) {
+    const wrap = document.getElementById('artworkWrap');
+    const img = document.createElement('img');
+    img.className = 'ai-image';
+    img.src = data.image;
+    img.alt = tier.title;
+    img.loading = 'eager';
+    img.onerror = function() { img.remove(); };
+    wrap.appendChild(img);
+
+    document.getElementById('downloadBtn').href = data.image;
+    document.getElementById('downloadBtn').download = tier.title.toLowerCase().replace(/ /g, '-') + '.png';
+  } else {
+    document.getElementById('downloadBtn').style.display = 'none';
+  }
+
+  // Blockchain link
+  if (data.mintHash) {
+    document.getElementById('solscanBtn').href = 'https://polygonscan.com/token/' + data.mintHash;
+  } else {
+    document.getElementById('solscanBtn').style.display = 'none';
+  }
+
+  document.title = tier.title + ' - Stretch Zone Westborough';
+}
+
+// ── Demo: click artwork to cycle tiers ──
+let demoIdx = 0;
+const demoTiers = [25, 50, 75, 100];
+const demoNames = ['Alex T.', 'Jordan K.', 'Sarah M.', 'Chris W.'];
+
+function demoSwitch() {
+  const p = new URLSearchParams(window.location.search);
+  if (p.has('m') || p.has('id') || p.has('mint')) return;
+  demoIdx = (demoIdx + 1) % 4;
+  render({ milestone: demoTiers[demoIdx], name: demoNames[demoIdx] });
+}
+
+// Init
+(function() {
+  const data = getParams();
+  render(data);
+
+  if (!window.location.search || window.location.search === '?') {
+    document.getElementById('artworkWrap').style.cursor = 'pointer';
+    document.getElementById('artworkWrap').addEventListener('click', demoSwitch);
+  }
+})();
+</script>
+</body>
+</html>
