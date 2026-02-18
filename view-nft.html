@@ -778,6 +778,8 @@
     .gallery-slot.earned .gallery-slot-status {
       color: #2E8B57;
       background: rgba(46, 139, 87, 0.15);
+      text-transform: none;
+      font-weight: 600;
     }
     .gallery-slot.locked .gallery-slot-status {
       color: var(--text-muted);
@@ -1242,6 +1244,46 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeLightbox();
 });
 
+// Determine how an NFT was earned from its metadata
+var EVENT_LABELS = {
+  'birthday': 'Birthday',
+  'milestone_10': '10 Visits', 'milestone_20': '20 Visits', 'milestone_30': '30 Visits',
+  'milestone_40': '40 Visits', 'milestone_50': '50 Visits', 'milestone_60': '60 Visits',
+  'milestone_70': '70 Visits', 'milestone_80': '80 Visits', 'milestone_90': '90 Visits',
+  'milestone_100': '100 Visits',
+  'reengagement': 'Welcome Back', 'loyalty': 'Loyalty',
+  'credit_reminder': 'Credits', 'survey_thanks': 'Survey',
+  'age_under30': 'Wellness', 'age_30_60': 'Wellness', 'age_over60': 'Wellness',
+  'sales_month1': '1 Month Member', 'sales_month2': '2 Month Member',
+  'sales_month3': '3 Month Member', 'sales_month4': '4 Month Member'
+};
+
+function getAwardReason(nft) {
+  var meta = nft.metadata || {};
+  var attrs = meta.attributes || [];
+  // Check attributes for eventType (future NFTs will have this)
+  for (var a = 0; a < attrs.length; a++) {
+    var traitType = (attrs[a].trait_type || attrs[a].traitType || '').toLowerCase();
+    var val = String(attrs[a].value || '');
+    if (traitType === 'eventtype' || traitType === 'event_type' || traitType === 'event') {
+      return EVENT_LABELS[val] || val.replace(/_/g, ' ');
+    }
+  }
+  // Parse description for clues
+  var desc = (meta.description || '').toLowerCase();
+  if (desc.indexOf('birthday') !== -1) return 'Birthday';
+  if (desc.indexOf('welcome back') !== -1 || desc.indexOf('reengagement') !== -1) return 'Welcome Back';
+  if (desc.indexOf('loyalty') !== -1) return 'Loyalty';
+  if (desc.indexOf('survey') !== -1) return 'Survey';
+  if (desc.indexOf('credit') !== -1) return 'Credits';
+  // Check for visit milestones in description
+  var visitMatch = desc.match(/(\d+)[\s-]?visit/);
+  if (visitMatch) return visitMatch[1] + ' Visits';
+  if (desc.indexOf('milestone') !== -1) return 'Milestone';
+  // Generic fallback
+  return 'Collectible';
+}
+
 function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId) {
   var grid = document.getElementById('galleryGrid');
   var bonusSection = document.getElementById('bonusSection');
@@ -1292,7 +1334,7 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
 
     var status = document.createElement('div');
     status.className = 'gallery-slot-status';
-    status.textContent = hasNft ? 'EARNED' : 'LOCKED';
+    status.textContent = hasNft ? getAwardReason(nft) : 'LOCKED';
 
     slot.appendChild(icon);
     slot.appendChild(nameEl);
