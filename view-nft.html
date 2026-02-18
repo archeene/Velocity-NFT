@@ -626,7 +626,7 @@
     }
     .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
     }
     .gallery-bonus-title {
@@ -679,9 +679,6 @@
       gap: 4px;
       transition: all 0.2s ease;
     }
-    .gallery-slot.locked {
-      padding: 10px 4px;
-    }
     .gallery-slot.earned {
       border-color: var(--slot-color, #cd7f32);
       background: rgba(255,255,255,0.03);
@@ -694,7 +691,7 @@
       filter: grayscale(0.6);
     }
     .gallery-slot-icon {
-      font-size: 20px;
+      font-size: 24px;
       line-height: 1;
       width: 100%;
       aspect-ratio: 1;
@@ -703,11 +700,7 @@
       justify-content: center;
       overflow: hidden;
       border-radius: 8px;
-    }
-    .gallery-slot.locked .gallery-slot-icon {
-      width: 36px;
-      aspect-ratio: auto;
-      height: 36px;
+      background: rgba(255,255,255,0.02);
     }
     .gallery-slot-icon img {
       width: 100%;
@@ -792,12 +785,10 @@
     }
     @media (max-width: 420px) {
       .gallery-grid {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 6px;
       }
-      .gallery-slot { padding: 6px 3px; }
-      .gallery-slot.locked .gallery-slot-icon { font-size: 16px; width: 28px; height: 28px; }
-      .gallery-slot-number { font-size: 12px; }
+      .gallery-slot { padding: 4px; }
       .gallery-slot-name { font-size: 7px; }
     }
 
@@ -1255,20 +1246,20 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
   if (bonusSection) bonusSection.style.display = 'none';
 
   // Collect all NFTs: wallet NFTs fill slots sequentially
+  var TOTAL_SLOTS = 16; // 4 rows x 4 columns
   var nftList = (walletNfts && walletNfts.length > 0) ? walletNfts.slice() : [];
 
-  // Render the 10 slots, filling with wallet NFTs in order
+  // Render 16 slots, filling with wallet NFTs in order
   grid.innerHTML = '';
-  for (var j = 0; j < TIER_KEYS.length; j++) {
-    var m = TIER_KEYS[j];
-    var t = TIERS[m];
-    var color = TIER_COLORS[m];
-    var glow = TIER_GLOWS[m];
+  for (var j = 0; j < TOTAL_SLOTS; j++) {
     var hasNft = j < nftList.length;
     var nft = hasNft ? nftList[j] : null;
     var nftMeta = nft ? (nft.metadata || {}) : {};
     var nftImage = hasNft ? (nftMeta.image || '') : '';
-    var nftName = hasNft ? (nftMeta.name || t.name) : '';
+    var nftName = hasNft ? (nftMeta.name || 'Award') : '';
+    // Cycle through tier colors for slot borders
+    var colorIdx = j % TIER_KEYS.length;
+    var color = TIER_COLORS[TIER_KEYS[colorIdx]];
 
     var slot = document.createElement('div');
     slot.className = 'gallery-slot' + (hasNft ? ' earned' : ' locked');
@@ -1284,14 +1275,11 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
       img.src = nftImage;
       img.alt = nftName;
       img.loading = 'lazy';
-      img.dataset.name = nftName;
       img.onclick = (function(src, name) {
         return function(e) { e.stopPropagation(); openLightbox(src, name); };
       })(nftImage, nftName);
       img.onerror = function() { this.parentNode.textContent = '\u{1F3C6}'; };
       icon.appendChild(img);
-    } else if (hasNft) {
-      icon.textContent = t.icon;
     } else {
       icon.textContent = '\u{1F512}';
     }
@@ -1308,53 +1296,6 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
     slot.appendChild(nameEl);
     slot.appendChild(status);
     grid.appendChild(slot);
-  }
-
-  // If more than 10 NFTs, show extras in bonus section
-  if (nftList.length > 10 && bonusSection) {
-    var bonusGrid = document.getElementById('bonusGrid');
-    bonusSection.style.display = 'block';
-    bonusGrid.innerHTML = '';
-    for (var b = 10; b < nftList.length; b++) {
-      var bnft = nftList[b];
-      var bmeta = bnft.metadata || {};
-      var bName = bmeta.name || 'Award';
-      var bImage = bmeta.image || '';
-
-      var bSlot = document.createElement('div');
-      bSlot.className = 'gallery-slot earned';
-      bSlot.style.setProperty('--slot-color', '#2E8B57');
-      bSlot.style.borderColor = 'rgba(46, 139, 87, 0.3)';
-
-      var bIcon = document.createElement('div');
-      bIcon.className = 'gallery-slot-icon';
-      if (bImage) {
-        var bImg = document.createElement('img');
-        bImg.src = bImage;
-        bImg.alt = bName;
-        bImg.loading = 'lazy';
-        bImg.onclick = (function(src, name) {
-          return function(e) { e.stopPropagation(); openLightbox(src, name); };
-        })(bImage, bName);
-        bImg.onerror = function() { this.parentNode.textContent = '\u{1F3C6}'; };
-        bIcon.appendChild(bImg);
-      } else {
-        bIcon.textContent = '\u{1F3C6}';
-      }
-
-      var bNameEl = document.createElement('div');
-      bNameEl.className = 'gallery-slot-name';
-      bNameEl.textContent = bName;
-
-      var bStatus = document.createElement('div');
-      bStatus.className = 'gallery-slot-status';
-      bStatus.textContent = 'EARNED';
-
-      bSlot.appendChild(bIcon);
-      bSlot.appendChild(bNameEl);
-      bSlot.appendChild(bStatus);
-      bonusGrid.appendChild(bSlot);
-    }
   }
 }
 
