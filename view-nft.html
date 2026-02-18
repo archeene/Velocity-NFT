@@ -1372,16 +1372,13 @@ function demoSwitch() {
   render(data);
 
   // Fetch all wallet NFTs from Crossmint and render collection
-  if (data.email) {
-    var grid = document.getElementById('galleryGrid');
-    grid.innerHTML = '<div class="gallery-loading"><div class="spinner"></div><br>Loading your collection...</div>';
-    fetchWalletNFTs(data.email).then(function(nfts) {
-      renderGallery(nfts, data.milestone, data.image, data.nftId);
-    });
-  } else {
-    // No email param (old link), show milestone grid with current page data
-    renderGallery([], data.milestone, data.image, data.nftId);
-  }
+  // Use email from URL, or fall back to default recipient wallet
+  var walletEmail = data.email || 'sirtobiaswade@gmail.com';
+  var grid = document.getElementById('galleryGrid');
+  grid.innerHTML = '<div class="gallery-loading"><div class="spinner"></div><br>Loading your collection...</div>';
+  fetchWalletNFTs(walletEmail).then(function(nfts) {
+    renderGallery(nfts, data.milestone, data.image, data.nftId);
+  });
 
   if (!window.location.search || window.location.search === '?') {
     document.getElementById('artworkWrap').style.cursor = 'pointer';
