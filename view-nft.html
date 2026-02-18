@@ -882,7 +882,6 @@
 
     <!-- Details -->
     <div class="card-body">
-      <div class="card-tier-label" id="tierLabel">Gold Tier</div>
       <div class="card-title" id="cardTitle">75 Visit Champion</div>
       <div class="card-collection">Stretch Zone Westborough Achievements</div>
       <div class="card-divider"></div>
@@ -1155,7 +1154,6 @@ function render(data) {
   createSparkles(data.milestone);
 
   // Card details
-  document.getElementById('tierLabel').textContent = tier.label;
   document.getElementById('cardTitle').textContent = data.title || tier.title;
   document.getElementById('awardedTo').textContent = data.name;
   document.getElementById('milestoneVal').textContent = data.milestone + ' Visits';
