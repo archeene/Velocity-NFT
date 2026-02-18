@@ -1279,9 +1279,8 @@ function getAwardReason(nft) {
   // Check for visit milestones in description
   var visitMatch = desc.match(/(\d+)[\s-]?visit/);
   if (visitMatch) return visitMatch[1] + ' Visits';
-  if (desc.indexOf('milestone') !== -1) return 'Milestone';
-  // Generic fallback
-  return 'Collectible';
+  // No label if we can't determine the reason
+  return '';
 }
 
 function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId) {
@@ -1332,9 +1331,11 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
     nameEl.className = 'gallery-slot-name';
     nameEl.textContent = hasNft ? nftName : 'Locked';
 
+    var reason = hasNft ? getAwardReason(nft) : 'LOCKED';
     var status = document.createElement('div');
     status.className = 'gallery-slot-status';
-    status.textContent = hasNft ? getAwardReason(nft) : 'LOCKED';
+    status.textContent = reason;
+    if (hasNft && !reason) status.style.display = 'none';
 
     slot.appendChild(icon);
     slot.appendChild(nameEl);
