@@ -671,13 +671,16 @@
       background: var(--bg-card);
       border: 2px solid var(--border-subtle);
       border-radius: 12px;
-      padding: 10px 4px;
+      padding: 6px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
       transition: all 0.2s ease;
+    }
+    .gallery-slot.locked {
+      padding: 10px 4px;
     }
     .gallery-slot.earned {
       border-color: var(--slot-color, #cd7f32);
@@ -693,24 +696,63 @@
     .gallery-slot-icon {
       font-size: 20px;
       line-height: 1;
-      width: 36px;
-      height: 36px;
+      width: 100%;
+      aspect-ratio: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      border-radius: 6px;
-    }
-    .gallery-bonus-grid .gallery-slot-icon {
-      width: 64px;
-      height: 64px;
       border-radius: 8px;
+    }
+    .gallery-slot.locked .gallery-slot-icon {
+      width: 36px;
+      aspect-ratio: auto;
+      height: 36px;
     }
     .gallery-slot-icon img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    /* Lightbox for viewing full-size images */
+    .lightbox-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.88);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      cursor: pointer;
+      animation: fadeIn 0.2s ease;
+    }
+    .lightbox-overlay.active { display: flex; }
+    .lightbox-overlay img {
+      max-width: 90vw;
+      max-height: 85vh;
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      object-fit: contain;
+    }
+    .lightbox-name {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Fredoka', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(0,0,0,0.5);
+      padding: 6px 20px;
+      border-radius: 20px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .gallery-slot-number {
       font-family: 'Fredoka', sans-serif;
@@ -753,15 +795,10 @@
         grid-template-columns: repeat(5, 1fr);
         gap: 6px;
       }
-      .gallery-slot { padding: 8px 2px; }
-      .gallery-slot-icon { font-size: 16px; width: 28px; height: 28px; }
-      .gallery-slot-number { font-size: 14px; }
-      .gallery-slot-name { font-size: 8px; }
-      .gallery-bonus-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-      }
-      .gallery-bonus-grid .gallery-slot-icon { width: 48px; height: 48px; }
+      .gallery-slot { padding: 6px 3px; }
+      .gallery-slot.locked .gallery-slot-icon { font-size: 16px; width: 28px; height: 28px; }
+      .gallery-slot-number { font-size: 12px; }
+      .gallery-slot-name { font-size: 7px; }
     }
 
     /* ── Responsive ── */
@@ -882,6 +919,12 @@
       <div class="gallery-bonus-title">Bonus Awards</div>
       <div class="gallery-bonus-grid" id="bonusGrid"></div>
     </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-name" id="lightboxName"></div>
   </div>
 
   <!-- Footer -->
@@ -1167,9 +1210,6 @@ const TIER_GLOWS = {
   100: 'rgba(200,184,232,0.4)'
 };
 
-// Milestone event types to match wallet NFTs against
-var MILESTONE_EVENTS = ['milestone_10','milestone_20','milestone_30','milestone_40','milestone_50','milestone_60','milestone_70','milestone_80','milestone_90','milestone_100'];
-
 async function fetchWalletNFTs(email) {
   if (!email) return [];
   try {
@@ -1195,131 +1235,96 @@ async function fetchWalletNFTs(email) {
   }
 }
 
-// Try to detect which milestone a wallet NFT belongs to
-function detectMilestone(nft) {
-  var meta = nft.metadata || {};
-  var name = (meta.name || '').toLowerCase();
-  var desc = (meta.description || '').toLowerCase();
-  var attrs = meta.attributes || [];
-  // Check attributes for eventType or milestone
-  for (var a = 0; a < attrs.length; a++) {
-    var attr = attrs[a];
-    var traitType = (attr.trait_type || attr.traitType || '').toLowerCase();
-    var val = String(attr.value || '');
-    if (traitType === 'eventtype' || traitType === 'event_type') {
-      var match = val.match(/milestone_(\d+)/);
-      if (match) return parseInt(match[1]);
-    }
-    if (traitType === 'milestone') return parseInt(val);
-  }
-  // Check description for "X visit" patterns
-  for (var k = 0; k < TIER_KEYS.length; k++) {
-    var m = TIER_KEYS[k];
-    if (desc.indexOf(m + ' visit') !== -1 || desc.indexOf(m + '-visit') !== -1) return m;
-    if (name.indexOf(m + ' visit') !== -1) return m;
-  }
-  return null;
+// Lightbox for full-size image viewing
+function openLightbox(src, name) {
+  var overlay = document.getElementById('lightbox');
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightboxName').textContent = name || '';
+  overlay.classList.add('active');
 }
-
-// Check if an NFT is a milestone type (vs bonus award)
-function isMilestoneNFT(nft) {
-  return detectMilestone(nft) !== null;
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
 }
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
 
 function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId) {
   var grid = document.getElementById('galleryGrid');
   var bonusSection = document.getElementById('bonusSection');
-  var bonusGrid = document.getElementById('bonusGrid');
+  if (bonusSection) bonusSection.style.display = 'none';
 
-  // Build a map of milestone -> wallet NFT image
-  var milestoneImages = {};
-  var bonusNfts = [];
+  // Collect all NFTs: wallet NFTs fill slots sequentially
+  var nftList = (walletNfts && walletNfts.length > 0) ? walletNfts.slice() : [];
 
-  if (walletNfts && walletNfts.length > 0) {
-    for (var i = 0; i < walletNfts.length; i++) {
-      var nft = walletNfts[i];
-      var detectedM = detectMilestone(nft);
-      if (detectedM && TIERS[detectedM]) {
-        milestoneImages[detectedM] = (nft.metadata && nft.metadata.image) || '';
-      } else {
-        bonusNfts.push(nft);
-      }
-    }
-  }
-
-  // If current page shows a milestone, save its image too
-  if (currentImage && TIERS[currentMilestone]) {
-    if (!milestoneImages[currentMilestone]) {
-      milestoneImages[currentMilestone] = currentImage;
-    }
-  }
-
-  // Render the 10 milestone slots (always shown)
+  // Render the 10 slots, filling with wallet NFTs in order
   grid.innerHTML = '';
   for (var j = 0; j < TIER_KEYS.length; j++) {
     var m = TIER_KEYS[j];
     var t = TIERS[m];
-    var earned = m <= currentMilestone;
-    var isCurrent = m === currentMilestone;
-    var nftImageUrl = milestoneImages[m] || '';
+    var color = TIER_COLORS[m];
+    var glow = TIER_GLOWS[m];
+    var hasNft = j < nftList.length;
+    var nft = hasNft ? nftList[j] : null;
+    var nftMeta = nft ? (nft.metadata || {}) : {};
+    var nftImage = hasNft ? (nftMeta.image || '') : '';
+    var nftName = hasNft ? (nftMeta.name || t.name) : '';
 
     var slot = document.createElement('div');
-    slot.className = 'gallery-slot' + (earned ? ' earned' : ' locked') + (isCurrent ? ' current' : '');
-    if (earned) {
-      slot.style.setProperty('--slot-color', TIER_COLORS[m]);
-      if (isCurrent) slot.style.setProperty('--slot-glow', TIER_GLOWS[m]);
-      slot.style.borderColor = TIER_COLORS[m];
+    slot.className = 'gallery-slot' + (hasNft ? ' earned' : ' locked');
+    if (hasNft) {
+      slot.style.setProperty('--slot-color', color);
+      slot.style.borderColor = color;
     }
 
     var icon = document.createElement('div');
     icon.className = 'gallery-slot-icon';
-    if (earned && nftImageUrl) {
+    if (hasNft && nftImage) {
       var img = document.createElement('img');
-      img.src = nftImageUrl;
-      img.alt = t.name;
-      img.onerror = function() { this.parentNode.textContent = TIERS[this.dataset.m] ? TIERS[this.dataset.m].icon : '\u{1F3C6}'; };
-      img.dataset.m = m;
+      img.src = nftImage;
+      img.alt = nftName;
+      img.loading = 'lazy';
+      img.dataset.name = nftName;
+      img.onclick = (function(src, name) {
+        return function(e) { e.stopPropagation(); openLightbox(src, name); };
+      })(nftImage, nftName);
+      img.onerror = function() { this.parentNode.textContent = '\u{1F3C6}'; };
       icon.appendChild(img);
+    } else if (hasNft) {
+      icon.textContent = t.icon;
     } else {
-      icon.textContent = earned ? t.icon : '\u{1F512}';
+      icon.textContent = '\u{1F512}';
     }
-
-    var num = document.createElement('div');
-    num.className = 'gallery-slot-number';
-    num.textContent = earned ? m : '??';
 
     var nameEl = document.createElement('div');
     nameEl.className = 'gallery-slot-name';
-    nameEl.textContent = earned ? t.name : 'Locked';
+    nameEl.textContent = hasNft ? nftName : 'Locked';
 
     var status = document.createElement('div');
     status.className = 'gallery-slot-status';
-    status.textContent = earned ? 'EARNED' : 'LOCKED';
+    status.textContent = hasNft ? 'EARNED' : 'LOCKED';
 
     slot.appendChild(icon);
-    slot.appendChild(num);
     slot.appendChild(nameEl);
     slot.appendChild(status);
     grid.appendChild(slot);
   }
 
-  // Render bonus awards (non-milestone NFTs from wallet)
-  if (bonusNfts.length > 0) {
+  // If more than 10 NFTs, show extras in bonus section
+  if (nftList.length > 10 && bonusSection) {
+    var bonusGrid = document.getElementById('bonusGrid');
     bonusSection.style.display = 'block';
     bonusGrid.innerHTML = '';
-    for (var b = 0; b < bonusNfts.length; b++) {
-      var bnft = bonusNfts[b];
+    for (var b = 10; b < nftList.length; b++) {
+      var bnft = nftList[b];
       var bmeta = bnft.metadata || {};
-      var bName = bmeta.name || 'Bonus Award';
+      var bName = bmeta.name || 'Award';
       var bImage = bmeta.image || '';
-      var bId = bnft.id || bnft.tokenId || '';
-      var bIsCurrent = currentNftId && (bId === currentNftId || bnft.tokenId === currentNftId);
 
       var bSlot = document.createElement('div');
-      bSlot.className = 'gallery-slot earned' + (bIsCurrent ? ' current' : '');
-      bSlot.style.setProperty('--slot-color', bIsCurrent ? '#3CB371' : '#2E8B57');
-      bSlot.style.borderColor = bIsCurrent ? '#3CB371' : 'rgba(46, 139, 87, 0.3)';
-      if (bIsCurrent) bSlot.style.setProperty('--slot-glow', 'rgba(60, 179, 113, 0.4)');
+      bSlot.className = 'gallery-slot earned';
+      bSlot.style.setProperty('--slot-color', '#2E8B57');
+      bSlot.style.borderColor = 'rgba(46, 139, 87, 0.3)';
 
       var bIcon = document.createElement('div');
       bIcon.className = 'gallery-slot-icon';
@@ -1328,6 +1333,9 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
         bImg.src = bImage;
         bImg.alt = bName;
         bImg.loading = 'lazy';
+        bImg.onclick = (function(src, name) {
+          return function(e) { e.stopPropagation(); openLightbox(src, name); };
+        })(bImage, bName);
         bImg.onerror = function() { this.parentNode.textContent = '\u{1F3C6}'; };
         bIcon.appendChild(bImg);
       } else {
@@ -1337,19 +1345,16 @@ function renderGallery(walletNfts, currentMilestone, currentImage, currentNftId)
       var bNameEl = document.createElement('div');
       bNameEl.className = 'gallery-slot-name';
       bNameEl.textContent = bName;
-      bNameEl.style.color = 'var(--text-primary)';
 
       var bStatus = document.createElement('div');
       bStatus.className = 'gallery-slot-status';
-      bStatus.textContent = bIsCurrent ? 'VIEWING' : 'EARNED';
+      bStatus.textContent = 'EARNED';
 
       bSlot.appendChild(bIcon);
       bSlot.appendChild(bNameEl);
       bSlot.appendChild(bStatus);
       bonusGrid.appendChild(bSlot);
     }
-  } else {
-    bonusSection.style.display = 'none';
   }
 }
 
