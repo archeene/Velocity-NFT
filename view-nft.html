@@ -1113,8 +1113,9 @@ function getParams() {
     milestone: parseInt(p.get('m') || p.get('milestone') || '50'),
     name:      p.get('name') || 'Sarah M.',
     title:     p.get('title'),
-    animal:    p.get('animal'),
-    exercise:  p.get('exercise'),
+    element:   p.get('element'),
+    chakra:    p.get('chakra'),
+    theme:     p.get('theme'),
     image:     p.get('image'),
     contract:  p.get('contract'),
     date:      p.get('date'),
@@ -1158,10 +1159,11 @@ function render(data) {
   document.getElementById('awardedTo').textContent = data.name;
   document.getElementById('milestoneVal').textContent = data.milestone + ' Visits';
 
-  // Custom description using animal + exercise if available
-  if (data.animal) {
+  // Custom description using element + chakra + theme if available
+  if (data.element) {
     document.getElementById('cardDesc').textContent =
-      'Your ' + data.milestone + '-visit milestone collectible featuring a ' + data.animal + ' ' + (data.exercise || '') +
+      'A mystical ' + data.element + ' element collectible aligned with the ' + (data.chakra || 'Universal') +
+      ' chakra, channeling the essence of ' + (data.theme || 'Wellness') +
       '. This digital achievement celebrates your commitment to wellness at Stretch Zone Westborough.';
   } else {
     document.getElementById('cardDesc').textContent = tier.desc;
