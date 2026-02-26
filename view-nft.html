@@ -279,12 +279,9 @@
     }
 
     .badge-number {
-      font-family: 'Fredoka', sans-serif;
-      font-size: 58px;
-      font-weight: 700;
-      color: var(--tier-accent);
+      font-size: 64px;
       line-height: 1;
-      text-shadow: 0 0 30px var(--tier-glow);
+      filter: drop-shadow(0 0 20px var(--tier-glow));
     }
 
     .badge-visits-label {
@@ -861,19 +858,19 @@
       <!-- Placeholder badge (centered) — AI image overlays this when available -->
       <div class="badge-artwork" id="badgeArtwork">
         <div class="sparkles" id="sparkles"></div>
-        <div class="badge-corner" id="badgeCorner">GOLD</div>
+        <div class="badge-corner" id="badgeCorner">NFT</div>
         <div class="badge-center">
           <div class="badge-ring-outer">
             <div class="badge-ring-inner">
               <div class="badge-content">
-                <div class="badge-icon" id="badgeIcon">&#x1F451;</div>
-                <div class="badge-number" id="badgeNumber">75</div>
-                <div class="badge-visits-label">visits</div>
+                <div class="badge-icon" id="badgeIcon">&#x1F389;</div>
+                <div class="badge-number" id="badgeNumber">&#x1F3C6;</div>
+                <div class="badge-visits-label">Congrats!</div>
               </div>
             </div>
           </div>
           <div class="badge-subtitle">
-            <div class="badge-tier-name" id="badgeTierName">CHAMPION</div>
+            <div class="badge-tier-name" id="badgeTierName">ACHIEVEMENT</div>
           </div>
         </div>
         <div class="badge-watermark">STRETCH ZONE</div>
@@ -882,7 +879,7 @@
 
     <!-- Details -->
     <div class="card-body">
-      <div class="card-title" id="cardTitle">75 Visit Champion</div>
+      <div class="card-title" id="cardTitle">Achievement Unlocked</div>
       <div class="card-collection">Stretch Zone Westborough Achievements</div>
       <div class="card-divider"></div>
 
@@ -1145,11 +1142,8 @@ function render(data) {
   // Tier class
   card.className = 'nft-card ' + tier.css;
 
-  // Badge artwork
-  document.getElementById('badgeNumber').textContent = data.milestone;
-  document.getElementById('badgeIcon').textContent = tier.icon;
-  document.getElementById('badgeTierName').textContent = data.title || tier.badge;
-  document.getElementById('badgeCorner').textContent = tier.corner;
+  // Badge artwork (generic congratulations placeholder)
+  // Tier-specific details show in card below; badge is generic for all award types
 
   // Sparkles
   createSparkles(data.milestone);
