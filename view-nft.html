@@ -1080,6 +1080,96 @@ const TIERS = {
 };
 
 // ═══════════════════════════════════════════════
+//  LOCATION CONFIG
+// ═══════════════════════════════════════════════
+const LOCATIONS = {
+  'westborough': {
+    gymName: 'Stretch Zone Westborough',
+    brand: 'Stretch Zone',
+    shortLocation: 'Westborough, MA',
+    phone: '(508) 571-4800',
+    phoneTel: '+15085714800',
+    address: '131 Turnpike Rd, Westborough, MA 01581',
+    website: 'https://www.stretchzone.com/locations/westborough',
+    watermark: 'STRETCH ZONE',
+    activity: 'wellness'
+  },
+  'west-boylston': {
+    gymName: 'Stretch Zone West Boylston',
+    brand: 'Stretch Zone',
+    shortLocation: 'West Boylston, MA',
+    phone: '(774) 261-4238',
+    phoneTel: '+17742614238',
+    address: '342 W Boylston St, West Boylston, MA 01583',
+    website: 'https://www.stretchzone.com/locations/west-boylston-ma',
+    watermark: 'STRETCH ZONE',
+    activity: 'wellness'
+  },
+  'carlsbad': {
+    gymName: 'StretchLab Carlsbad',
+    brand: 'StretchLab',
+    shortLocation: 'Carlsbad, CA',
+    phone: '(760) 283-7126',
+    phoneTel: '+17602837126',
+    address: '1850 Marron Rd, Suite 102, Carlsbad, CA 92008',
+    website: 'https://www.stretchlab.com/location/carlsbadnorthcoast',
+    watermark: 'STRETCHLAB',
+    activity: 'wellness'
+  },
+  'integrated-martial-arts-westborough': {
+    gymName: 'IMA Westborough',
+    brand: 'Integrated Martial Arts',
+    shortLocation: 'Westborough, MA',
+    phone: '(774) 772-4759',
+    phoneTel: '+17747724759',
+    address: '227 Turnpike Rd, Suite C, Westborough, MA 01581',
+    website: 'https://integratedmartialarts.com',
+    watermark: 'IMA FITNESS',
+    activity: 'training'
+  },
+  'worcester': {
+    gymName: 'IMA Worcester',
+    brand: 'Integrated Martial Arts',
+    shortLocation: 'Worcester, MA',
+    phone: '(508) 251-9469',
+    phoneTel: '+15082519469',
+    address: '342A W Boylston St, West Boylston, MA 01583',
+    website: 'https://imaworcester.com',
+    watermark: 'IMA FITNESS',
+    activity: 'training'
+  },
+  'dfw': {
+    gymName: 'Stretch Zone Southlake',
+    brand: 'Stretch Zone',
+    shortLocation: 'Southlake, TX',
+    phone: '(817) 612-1666',
+    phoneTel: '+18176121666',
+    address: '405 N Carroll Ave, Southlake, TX 76092',
+    website: 'https://www.stretchzone.com/locations/southlake-tx',
+    watermark: 'STRETCH ZONE',
+    activity: 'wellness'
+  },
+  'baton-rouge': {
+    gymName: 'Stretch Zone Bocage',
+    brand: 'Stretch Zone',
+    shortLocation: 'Baton Rouge, LA',
+    phone: '(225) 456-2734',
+    phoneTel: '+12254562734',
+    address: '7575 Jefferson Hwy, Suite E, Baton Rouge, LA 70806',
+    website: 'https://www.stretchzone.com/locations/bocage-la',
+    watermark: 'STRETCH ZONE',
+    activity: 'wellness'
+  }
+};
+
+// Default location fallback
+const DEFAULT_LOCATION = 'westborough';
+
+function getLocation(locSlug) {
+  return LOCATIONS[locSlug] || LOCATIONS[DEFAULT_LOCATION];
+}
+
+// ═══════════════════════════════════════════════
 //  SPARKLE PARTICLES
 // ═══════════════════════════════════════════════
 function createSparkles(milestone) {
@@ -1117,7 +1207,8 @@ function getParams() {
     contract:  p.get('contract'),
     date:      p.get('date'),
     email:     p.get('email'),
-    event:     p.get('event')
+    event:     p.get('event'),
+    loc:       p.get('loc') || p.get('location')
   };
 }
 
@@ -1138,6 +1229,7 @@ async function fetchCrossmintImage(nftId, contract) {
 function render(data) {
   const tier = TIERS[data.milestone] || TIERS[50];
   const card = document.getElementById('nftCard');
+  const loc = getLocation(data.loc);
 
   // Tier class
   card.className = 'nft-card ' + tier.css;
@@ -1158,9 +1250,9 @@ function render(data) {
     document.getElementById('cardDesc').textContent =
       'A mystical ' + data.element + ' element collectible aligned with the ' + (data.chakra || 'Universal') +
       ' chakra, channeling the essence of ' + (data.theme || 'Wellness') +
-      '. This digital achievement celebrates your commitment to wellness at Stretch Zone Westborough.';
+      '. This digital achievement celebrates your commitment to ' + loc.activity + ' at ' + loc.gymName + '.';
   } else {
-    document.getElementById('cardDesc').textContent = tier.desc;
+    document.getElementById('cardDesc').textContent = tier.desc.replace(/Stretch Zone Westborough/g, loc.gymName);
   }
 
   // Date
@@ -1221,7 +1313,7 @@ function render(data) {
     document.getElementById('claimBtn').style.display = 'flex';
   }
 
-  document.title = (data.title || tier.title) + ' - Stretch Zone Westborough';
+  document.title = (data.title || tier.title) + ' - ' + loc.gymName;
 }
 
 // ═══════════════════════════════════════════════
@@ -1402,6 +1494,41 @@ function demoSwitch() {
 // Init
 (function() {
   const data = getParams();
+  const loc = getLocation(data.loc);
+
+  // Update page-level location branding
+  document.querySelector('.sz-logo-text').textContent = loc.brand;
+  document.querySelector('.sz-location').textContent = loc.shortLocation;
+  document.querySelector('.badge-watermark').textContent = loc.watermark;
+  document.querySelector('.card-collection').textContent = loc.gymName + ' Achievements';
+  document.querySelector('.card-desc').textContent =
+    'This digital collectible celebrates your incredible commitment to ' + loc.activity + ' at ' + loc.gymName + '.';
+
+  // Update meta description
+  var metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', 'View your ' + loc.gymName + ' milestone achievement collectible');
+
+  // Update booking popup
+  document.querySelector('.booking-popup-text').textContent = 'Call ' + loc.gymName + ' to schedule:';
+  var popupPhone = document.querySelector('.booking-popup-phone');
+  popupPhone.textContent = loc.phone;
+  popupPhone.href = 'tel:' + loc.phoneTel;
+
+  // Update "Book" button tel link
+  var bookBtn = document.querySelector('.btn-book');
+  if (bookBtn) bookBtn.setAttribute('href', 'tel:' + loc.phoneTel);
+
+  // Update footer
+  var footerLink = document.querySelector('.footer-location a');
+  if (footerLink) {
+    footerLink.href = loc.website;
+    footerLink.textContent = loc.gymName;
+  }
+  var footerLoc = document.querySelector('.footer-location');
+  if (footerLoc) {
+    footerLoc.innerHTML = '<a href="' + loc.website + '" target="_blank" rel="noopener">' + loc.gymName + '</a><br>' + loc.address;
+  }
+
   render(data);
 
   // Fetch all wallet NFTs from Crossmint and render collection
