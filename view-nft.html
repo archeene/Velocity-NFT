@@ -1165,37 +1165,6 @@
       border-top: 1px solid var(--border-subtle);
     }
 
-    /* Notes field (dark) */
-    .booking-card .form-group { margin-top: 16px; margin-bottom: 14px; }
-    .booking-card .form-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-    }
-    .booking-card .form-group textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border: 2px solid #2a3040;
-      border-radius: 10px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      background: #1a1f27;
-      color: var(--text-primary);
-      resize: vertical;
-      min-height: 60px;
-      transition: 0.2s ease;
-    }
-    .booking-card .form-group textarea:focus {
-      outline: none;
-      border-color: var(--sz-green);
-      box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.15);
-    }
-    .booking-card .form-group textarea::placeholder { color: var(--text-muted); }
-
     /* Submit button */
     .btn-submit {
       width: 100%;
@@ -1446,10 +1415,6 @@
         <div class="summary-row" id="summaryCreditsRow" style="display:none;"><span class="label">Credits</span><span class="value" id="summaryCredits"></span></div>
         <div id="bkSummaryPricing" style="display:none;"></div>
         <div class="bk-summary-note" id="summaryPayNote" style="display:none;">Book online, pay in store</div>
-        <div class="form-group">
-          <label for="inputNotes">Notes (optional)</label>
-          <textarea id="inputNotes" placeholder="Any special requests..."></textarea>
-        </div>
         <button class="btn-submit" id="submitBtn" onclick="bkSubmitBooking()" disabled>
           <span id="submitText">Confirm Booking</span>
         </button>
@@ -1694,7 +1659,7 @@ const LOCATIONS = {
     watermark: 'STRETCHLAB',
     activity: 'wellness'
   },
-  'integrated-martial-arts-westborough': {
+  'ima-westborough': {
     gymName: 'IMA Westborough',
     brand: 'Integrated Martial Arts',
     shortLocation: 'Westborough, MA',
@@ -1705,7 +1670,7 @@ const LOCATIONS = {
     watermark: 'IMA FITNESS',
     activity: 'training'
   },
-  'worcester': {
+  'ima-worcester': {
     gymName: 'IMA Worcester',
     brand: 'Integrated Martial Arts',
     shortLocation: 'Worcester, MA',
@@ -2092,10 +2057,12 @@ var BOOKING_LOCATIONS = {
     timezone: 'America/New_York',
     phone: '15083291134',
     email: 'westboroughma@stretchzone.com',
+    address: '600 Union St, Westborough, MA 01581',
     clubreadyStoreId: 15077,
     crm: 'clubready',
     hours: { weekday: [8, 19], saturday: [10, 15], sunday: null },
-    daysAhead: 2,
+    daysAhead: 14,
+    leadDaysAhead: 3,
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
       title: 'Member Session Pricing',
@@ -2116,10 +2083,12 @@ var BOOKING_LOCATIONS = {
     timezone: 'America/New_York',
     phone: '17742614238',
     email: 'westboylstonma@stretchzone.com',
+    address: '342 W Boylston St, West Boylston, MA 01583',
     clubreadyStoreId: 14803,
     crm: 'clubready',
     hours: { weekday: [8, 19], saturday: [10, 15], sunday: null },
-    daysAhead: 2,
+    daysAhead: 14,
+    leadDaysAhead: 3,
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
       title: 'Member Session Pricing',
@@ -2140,10 +2109,12 @@ var BOOKING_LOCATIONS = {
     timezone: 'America/Los_Angeles',
     phone: '17602837126',
     email: 'carlsbadnorthcoast@stretchlab.com',
+    address: '1850 Marron Road, Suite 102, Carlsbad, CA 92008',
     clubreadyStoreId: 12727,
     crm: 'clubready',
     hours: { weekday: [9, 20], saturday: [9, 15], sunday: [10, 14] },
-    daysAhead: 2,
+    daysAhead: 14,
+    leadDaysAhead: 3,
     leadOffer: { label: 'Intro Stretch: $39 (25 min) or $59 (50 min)', detail: 'Includes MAPS assessment (Mobility, Activation, Posture, Symmetry)' },
     pricing: {
       title: 'Member Session Pricing',
@@ -2164,6 +2135,7 @@ var BOOKING_LOCATIONS = {
     timezone: 'America/New_York',
     phone: '17747724759',
     email: 'info@integratedmartialarts.com',
+    address: '227 Turnpike Road, Suite C, Westborough, MA 01581',
     crm: 'spark',
     hours: { weekday: [6, 20], saturday: [10, 14], sunday: null },
     leadOffer: { label: '$19.99 for 3 Trial Sessions', detail: 'Available for adults and kids' },
@@ -2177,6 +2149,7 @@ var BOOKING_LOCATIONS = {
     timezone: 'America/New_York',
     phone: '15082519469',
     email: 'info@imaworcester.com',
+    address: '342A West Boylston Street, West Boylston, MA 01583',
     crm: 'wellnessliving',
     hours: { weekday: [9, 20], saturday: [9, 14], sunday: [10, 12] },
     leadOffer: { label: '$19.99 for 3 Trial Sessions', detail: 'Available for adults and kids' },
@@ -2190,9 +2163,12 @@ var BOOKING_LOCATIONS = {
     timezone: 'America/Chicago',
     phone: '18176121666',
     email: 'southlake@stretchzone.com',
+    address: '405 N Carroll Ave, Southlake, TX 76092',
     clubreadyStoreId: 8486,
     crm: 'clubready',
     hours: { weekday: [7, 20], saturday: [8, 16], sunday: [11, 17] },
+    daysAhead: 14,
+    leadDaysAhead: 3,
     leadOffer: { label: 'FREE Initial Demo Session', detail: 'About 45-60 minutes, just bring comfortable clothing and socks' },
     pricing: {
       title: 'Session Pricing',
@@ -2209,9 +2185,12 @@ var BOOKING_LOCATIONS = {
     timezone: 'America/Chicago',
     phone: '12254562734',
     email: 'bocage@stretchzone.com',
+    address: '7575 Jefferson Hwy Suite E, Baton Rouge, LA 70806',
     clubreadyStoreId: 12330,
     crm: 'clubready',
     hours: { weekday: [7, 19], saturday: [8, 16], sunday: [11, 17] },
+    daysAhead: 14,
+    leadDaysAhead: 3,
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
       title: 'Member Session Pricing',
@@ -2231,8 +2210,8 @@ var NFT_TO_BOOKING_MAP = {
   'westborough': 'stretch-zone-westborough',
   'west-boylston': 'stretch-zone-west-boylston',
   'carlsbad': 'stretchlab-carlsbad',
-  'integrated-martial-arts-westborough': 'integrated-martial-arts-westborough',
-  'worcester': 'integrated-martial-arts-worcester',
+  'ima-westborough': 'integrated-martial-arts-westborough',
+  'ima-worcester': 'integrated-martial-arts-worcester',
   'dfw': 'stretch-zone-dfw',
   'baton-rouge': 'stretch-zone-baton-rouge',
 };
@@ -2862,8 +2841,6 @@ async function bkSubmitBooking() {
   var name = bkUserInfo.name || '';
   var email = bkUserInfo.email || '';
   var phone = bkUserInfo.phone || '';
-  var notes = document.getElementById('inputNotes').value.trim();
-
   btn.disabled = true;
   document.getElementById('submitText').innerHTML = '<div class="bk-spinner"></div> Booking...';
 
@@ -2887,7 +2864,6 @@ async function bkSubmitBooking() {
     name: name,
     email: email,
     phone: bkCleanPhone(phone),
-    notes: notes,
     date: formattedDate,
     time: bkSelectedSlot.displayTime || bkSelectedSlot.time || '',
     instructor: bkSelectedSlot.instructor || '',
