@@ -2094,6 +2094,7 @@ var BOOKING_LOCATIONS = {
     email: 'westboroughma@stretchzone.com',
     clubreadyStoreId: 15077,
     crm: 'clubready',
+    leadDaysAhead: 5,
     hours: { weekday: [8, 19], saturday: [10, 15], sunday: null },
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
@@ -2117,6 +2118,7 @@ var BOOKING_LOCATIONS = {
     email: 'westboylstonma@stretchzone.com',
     clubreadyStoreId: 14803,
     crm: 'clubready',
+    leadDaysAhead: 5,
     hours: { weekday: [8, 19], saturday: [10, 15], sunday: null },
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
@@ -2140,6 +2142,7 @@ var BOOKING_LOCATIONS = {
     email: 'carlsbadnorthcoast@stretchlab.com',
     clubreadyStoreId: 12727,
     crm: 'clubready',
+    leadDaysAhead: 5,
     hours: { weekday: [9, 20], saturday: [9, 15], sunday: [10, 14] },
     leadOffer: { label: 'Intro Stretch: $39 (25 min) or $59 (50 min)', detail: 'Includes MAPS assessment (Mobility, Activation, Posture, Symmetry)' },
     pricing: {
@@ -2188,6 +2191,7 @@ var BOOKING_LOCATIONS = {
     phone: '18176121666',
     email: 'southlake@stretchzone.com',
     crm: 'clubready',
+    leadDaysAhead: 5,
     hours: { weekday: [7, 20], saturday: [8, 16], sunday: [11, 17] },
     leadOffer: { label: 'FREE Initial Demo Session', detail: 'About 45-60 minutes, just bring comfortable clothing and socks' },
     pricing: {
@@ -2206,6 +2210,7 @@ var BOOKING_LOCATIONS = {
     phone: '12254562734',
     email: 'bocage@stretchzone.com',
     crm: 'clubready',
+    leadDaysAhead: 5,
     hours: { weekday: [7, 19], saturday: [8, 16], sunday: [11, 17] },
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
@@ -2463,6 +2468,11 @@ function bkBuildDateCarousel() {
   var container = document.getElementById('dateScroll');
   container.innerHTML = '';
 
+  var isLead = !!(bkUserInfo.leadId);
+  var maxDays = (isLead && bkCurrentLocation && bkCurrentLocation.leadDaysAhead)
+    ? bkCurrentLocation.leadDaysAhead
+    : BK_CONFIG.daysAhead;
+
   var now = bkGetLocationNow();
   var startDate = new Date(now);
   startDate.setDate(startDate.getDate() + bkDateOffset);
@@ -2476,9 +2486,9 @@ function bkBuildDateCarousel() {
   document.getElementById('dateNavLabel').textContent =
     months[startDate.getMonth()] + ' ' + startDate.getFullYear();
   document.getElementById('datePrev').disabled = (bkDateOffset <= 0);
-  document.getElementById('dateNext').disabled = (bkDateOffset >= BK_CONFIG.daysAhead - 7);
+  document.getElementById('dateNext').disabled = (bkDateOffset >= maxDays - 7);
 
-  for (var i = 0; i < BK_CONFIG.daysAhead; i++) {
+  for (var i = 0; i < maxDays; i++) {
     var d = new Date(startDate);
     d.setDate(d.getDate() + i);
     d.setHours(0, 0, 0, 0);
@@ -2523,7 +2533,11 @@ function bkBuildDateCarousel() {
 }
 
 function bkShiftDates(offset) {
-  bkDateOffset = Math.max(0, Math.min(BK_CONFIG.daysAhead - 7, bkDateOffset + offset));
+  var isLead = !!(bkUserInfo.leadId);
+  var maxDays = (isLead && bkCurrentLocation && bkCurrentLocation.leadDaysAhead)
+    ? bkCurrentLocation.leadDaysAhead
+    : BK_CONFIG.daysAhead;
+  bkDateOffset = Math.max(0, Math.min(maxDays - 7, bkDateOffset + offset));
   bkSelectedDate = null;
   bkSelectedSlot = null;
   bkUpdateSelectionSummary();
