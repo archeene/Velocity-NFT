@@ -2094,7 +2094,8 @@ var BOOKING_LOCATIONS = {
     email: 'westboroughma@stretchzone.com',
     clubreadyStoreId: 15077,
     crm: 'clubready',
-    leadDaysAhead: 5,
+    leadDaysAhead: 3,
+    leadDaysAheadExpanded: 5,
     hours: { weekday: [8, 19], saturday: [10, 15], sunday: null },
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
@@ -2118,7 +2119,8 @@ var BOOKING_LOCATIONS = {
     email: 'westboylstonma@stretchzone.com',
     clubreadyStoreId: 14803,
     crm: 'clubready',
-    leadDaysAhead: 5,
+    leadDaysAhead: 3,
+    leadDaysAheadExpanded: 5,
     hours: { weekday: [8, 19], saturday: [10, 15], sunday: null },
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
@@ -2142,7 +2144,8 @@ var BOOKING_LOCATIONS = {
     email: 'carlsbadnorthcoast@stretchlab.com',
     clubreadyStoreId: 12727,
     crm: 'clubready',
-    leadDaysAhead: 5,
+    leadDaysAhead: 3,
+    leadDaysAheadExpanded: 5,
     hours: { weekday: [9, 20], saturday: [9, 15], sunday: [10, 14] },
     leadOffer: { label: 'Intro Stretch: $39 (25 min) or $59 (50 min)', detail: 'Includes MAPS assessment (Mobility, Activation, Posture, Symmetry)' },
     pricing: {
@@ -2191,7 +2194,8 @@ var BOOKING_LOCATIONS = {
     phone: '18176121666',
     email: 'southlake@stretchzone.com',
     crm: 'clubready',
-    leadDaysAhead: 5,
+    leadDaysAhead: 3,
+    leadDaysAheadExpanded: 5,
     hours: { weekday: [7, 20], saturday: [8, 16], sunday: [11, 17] },
     leadOffer: { label: 'FREE Initial Demo Session', detail: 'About 45-60 minutes, just bring comfortable clothing and socks' },
     pricing: {
@@ -2210,7 +2214,8 @@ var BOOKING_LOCATIONS = {
     phone: '12254562734',
     email: 'bocage@stretchzone.com',
     crm: 'clubready',
-    leadDaysAhead: 5,
+    leadDaysAhead: 3,
+    leadDaysAheadExpanded: 5,
     hours: { weekday: [7, 19], saturday: [8, 16], sunday: [11, 17] },
     leadOffer: { label: 'FREE First Stretch Assessment', detail: 'Includes consultation, 30-min stretch, and membership review' },
     pricing: {
@@ -2456,6 +2461,7 @@ function initBooking() {
   bkUserInfo.memberId = params.get('mid') || params.get('memberId') || '';
 
   bkBuildDateCarousel();
+  bkCheckLeadSlotExpansion();
 
   // Fetch member info if member ID present and location is ClubReady
   if (bkUserInfo.memberId && bkCurrentLocation.crm === 'clubready') {
@@ -2542,6 +2548,56 @@ function bkShiftDates(offset) {
   bkSelectedSlot = null;
   bkUpdateSelectionSummary();
   bkBuildDateCarousel();
+}
+
+// Smart lead date range: pre-fetch slots for initial days, expand if too few
+async function bkCheckLeadSlotExpansion() {
+  var isLead = !!(bkUserInfo.leadId);
+  if (!isLead || !bkCurrentLocation || !bkCurrentLocation.leadDaysAhead) return;
+  if (!bkCurrentLocation.leadDaysAheadExpanded) return;
+
+  var now = bkGetLocationNow();
+  var dates = [];
+  for (var i = 0; i < bkCurrentLocation.leadDaysAhead; i++) {
+    var d = new Date(now);
+    d.setDate(d.getDate() + i);
+    // Skip days with no hours (e.g. Sunday if sunday: null)
+    var dayOfWeek = d.getDay();
+    if (dayOfWeek === 0 && !bkCurrentLocation.hours.sunday) continue;
+    dates.push(d.toISOString().split('T')[0]);
+  }
+
+  try {
+    var fetches = dates.map(function(dateStr) {
+      return fetch(BK_CONFIG.availabilityWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: bkCurrentLocationSlug,
+          date: dateStr,
+          leadId: bkUserInfo.leadId || '',
+          timezone: bkCurrentLocation.timezone,
+          crm: bkCurrentLocation.crm,
+          storeId: bkCurrentLocation.clubreadyStoreId || null,
+        }),
+      }).then(function(r) { return r.ok ? r.json() : []; })
+        .then(function(data) { return Array.isArray(data) ? data : (data.slots || []); })
+        .catch(function() { return []; });
+    });
+
+    var results = await Promise.all(fetches);
+    var totalSlots = results.reduce(function(sum, slots) { return sum + slots.length; }, 0);
+
+    if (totalSlots <= 2) {
+      bkCurrentLocation.leadDaysAhead = bkCurrentLocation.leadDaysAheadExpanded;
+      bkSelectedDate = null;
+      bkSelectedSlot = null;
+      bkDateOffset = 0;
+      bkBuildDateCarousel();
+    }
+  } catch (err) {
+    console.warn('Lead slot expansion check failed:', err.message);
+  }
 }
 
 function bkSelectDate(dateStr) {
