@@ -2041,6 +2041,7 @@ function demoSwitch() {
 // ═══════════════════════════════════════════════
 var BK_CONFIG = {
   bookingApi: 'https://jjckotsrhuxxftwmdlwc.supabase.co/functions/v1/book-session',
+  checkoutApi: 'https://jjckotsrhuxxftwmdlwc.supabase.co/functions/v1/create-checkout-session',
   availabilityWebhook: 'https://velocityaipartners.app.n8n.cloud/webhook/booking-availability',
   memberInfoApi: 'https://jjckotsrhuxxftwmdlwc.supabase.co/functions/v1/member-info',
   daysAhead: 30,
@@ -2139,6 +2140,7 @@ var BOOKING_LOCATIONS = {
     crm: 'spark',
     hours: { weekday: [6, 20], saturday: [10, 14], sunday: null },
     leadOffer: { label: '$19.99 for 3 Trial Sessions', detail: 'Available for adults and kids' },
+    stripePrice: 1999,
   },
   'integrated-martial-arts-worcester': {
     name: 'IMA Fitness',
@@ -2153,6 +2155,7 @@ var BOOKING_LOCATIONS = {
     crm: 'wellnessliving',
     hours: { weekday: [9, 20], saturday: [9, 14], sunday: [10, 12] },
     leadOffer: { label: '$19.99 for 3 Trial Sessions', detail: 'Available for adults and kids' },
+    stripePrice: 1999,
   },
   'stretch-zone-dfw': {
     name: 'Stretch Zone',
@@ -2433,6 +2436,17 @@ function initBooking() {
   bkUserInfo.phone = params.get('phone') || '';
   bkUserInfo.leadId = params.get('lid') || params.get('leadId') || '';
   bkUserInfo.memberId = params.get('mid') || params.get('memberId') || '';
+
+  // Handle Stripe payment return
+  var paymentSession = params.get('payment_session');
+  if (paymentSession && bkCurrentLocation) {
+    var pending = sessionStorage.getItem('pendingBookingNft');
+    if (pending) {
+      sessionStorage.removeItem('pendingBookingNft');
+      bkAutoSubmitPaidBooking(JSON.parse(pending), paymentSession);
+      return;
+    }
+  }
 
   bkBuildDateCarousel();
 
@@ -2836,13 +2850,46 @@ function bkUpdateSelectionSummary() {
   pricingEl.innerHTML = html;
   pricingEl.style.display = html ? 'block' : 'none';
 
-  // Always show "Book online, pay in store" for NFT page (members only)
-  document.getElementById('summaryPayNote').style.display = 'block';
+  // Show "Book online, pay in store" unless Stripe payment location
+  var isImaLead = bkUserInfo.leadId && !bkUserInfo.memberId && bkCurrentLocation && bkCurrentLocation.stripePrice;
+  document.getElementById('summaryPayNote').style.display = isImaLead ? 'none' : 'block';
+}
+
+function bkGetSubmitButtonText() {
+  var isImaLead = bkUserInfo.leadId && !bkUserInfo.memberId && bkCurrentLocation && bkCurrentLocation.stripePrice;
+  return isImaLead ? 'Pay & Book: $' + (bkCurrentLocation.stripePrice / 100).toFixed(2) : 'Confirm Booking';
 }
 
 function bkUpdateSubmitButton() {
   var btn = document.getElementById('submitBtn');
   btn.disabled = !(bkSelectedDate && bkSelectedSlot);
+  document.getElementById('submitText').textContent = bkGetSubmitButtonText();
+}
+
+async function bkAutoSubmitPaidBooking(payload, sessionId) {
+  payload.paymentSessionId = sessionId;
+  var formCard = document.getElementById('formCard');
+  if (formCard) {
+    formCard.innerHTML = '<div style="text-align:center;padding:20px;"><div class="bk-spinner"></div><p style="margin-top:12px;color:var(--text-secondary);">Processing your payment and booking...</p></div>';
+  }
+  try {
+    var response = await fetch(BK_CONFIG.bookingApi, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    var result = {};
+    try { result = await response.json(); } catch (e) {}
+    if (result.success) {
+      bkShowConfirmation(payload, result);
+    } else {
+      var msg = result.message || 'Booking could not be completed after payment. Please contact us.';
+      bkShowBookingError(msg);
+    }
+  } catch (err) {
+    console.error('Post-payment booking error:', err);
+    bkShowBookingError('Payment was successful but booking failed. Please contact us.');
+  }
 }
 
 // Submit booking
@@ -2884,6 +2931,51 @@ async function bkSubmitBooking() {
     className: (bkCurrentLocation.uiMode === 'classes') ? (bkSelectedSlot.type || '') : '',
     source: 'nft-page',
   };
+
+  // Stripe payment required for IMA leads
+  var isImaLead = bkUserInfo.leadId && !bkUserInfo.memberId && bkCurrentLocation && bkCurrentLocation.stripePrice;
+  if (isImaLead) {
+    sessionStorage.setItem('pendingBookingNft', JSON.stringify(payload));
+    document.getElementById('submitText').innerHTML = '<div class="bk-spinner"></div> Redirecting to payment...';
+    try {
+      var returnParams = new URLSearchParams({
+        loc: new URLSearchParams(window.location.search).get('loc') || '',
+        location: bkCurrentLocationSlug,
+        name: bkUserInfo.name || '',
+        phone: bkUserInfo.phone || '',
+        lid: bkUserInfo.leadId || '',
+      });
+      if (bkUserInfo.email) returnParams.set('email', bkUserInfo.email);
+      var returnUrl = window.location.origin + window.location.pathname + '?' + returnParams.toString();
+      var checkoutResp = await fetch(BK_CONFIG.checkoutApi, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: bkCurrentLocationSlug,
+          locationName: bkCurrentLocation.displayName,
+          price: bkCurrentLocation.stripePrice,
+          name: payload.name,
+          email: payload.email,
+          phone: payload.phone,
+          date: payload.date,
+          time: payload.time,
+          returnUrl: returnUrl,
+        }),
+      });
+      var checkoutData = await checkoutResp.json();
+      if (checkoutData.url) {
+        window.location.href = checkoutData.url;
+        return;
+      } else {
+        bkShowBookingError('Payment setup failed: ' + (checkoutData.error || 'Unknown error'));
+        return;
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      bkShowBookingError('Payment setup failed. Please try again.');
+      return;
+    }
+  }
 
   try {
     var response = await fetch(BK_CONFIG.bookingApi, {
@@ -2931,7 +3023,7 @@ function bkShowConfirmation(payload, result) {
 
   // Reset submit button
   document.getElementById('submitBtn').disabled = false;
-  document.getElementById('submitText').textContent = 'Confirm Booking';
+  document.getElementById('submitText').textContent = bkGetSubmitButtonText();
 }
 
 function bkShowBookingError(msg) {
@@ -2946,7 +3038,7 @@ function bkShowBookingError(msg) {
   document.getElementById('bkPopupOverlay').classList.add('visible');
 
   document.getElementById('submitBtn').disabled = false;
-  document.getElementById('submitText').textContent = 'Confirm Booking';
+  document.getElementById('submitText').textContent = bkGetSubmitButtonText();
 }
 
 // Fallback slots
@@ -3098,6 +3190,19 @@ async function bkFetchMemberInfo(locationSlug, memberId) {
     // Silently fail; member info is optional enhancement
   }
 }
+
+// Auto-expand booking section on Stripe payment return
+(function() {
+  var ps = new URLSearchParams(window.location.search).get('payment_session');
+  if (ps) {
+    var section = document.getElementById('bookingSection');
+    if (section) section.classList.add('expanded');
+    if (!bkInitialized) {
+      initBooking();
+      bkInitialized = true;
+    }
+  }
+})();
 </script>
 </body>
 </html>
